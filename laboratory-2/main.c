@@ -5,7 +5,7 @@
 
 extern char *tzname[];
 
-main() {
+int main() {
     time_t toNow;
     struct tm *currTime;
 
@@ -25,6 +25,6 @@ main() {
     printf("%d/%d/%02d %d:%02d %s\n",
            currTime->tm_mon + 1, currTime->tm_mday, currTime->tm_year + 1900, currTime->tm_hour, currTime->tm_min, tzname[currTime->tm_isdst]);
 
-    exit(0);
+    return 0;
 }
 
