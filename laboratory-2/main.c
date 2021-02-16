@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <stdlib.h>
+#include <errno.h>
 
 extern char *tzname[];
 
