@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <stdlib.h>
+#include <errno.h>
 
 extern char *tzname[];
 
@@ -13,7 +14,9 @@ int main() {
      * Преобразование типа возвращаемого значения в void означает, что возвращаемое значение не будет использоваться. */
     (void) time( &toNow );
 
-    putenv("TZ=America/Tijuana");
+    if(putenv("TZ=America/Tijuana")){
+        perror("Error with changing TZ.\n");
+    }
 
     /* Преобразует календарное время в ASCII-строку формата date(1).
      * Адрес, возвращенный этой функцией, используется в качестве параметра printf для печати ASCII-строки. */
