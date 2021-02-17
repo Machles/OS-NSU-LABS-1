@@ -26,10 +26,10 @@ int main(int argc, char* argv[]){
     printf("Real user ID: %d\nEffective user ID: %d\n\n", getuid(), geteuid());
 
     if(file == NULL){
-        perror("There are problems with opening file. (First try)");
+        perror("There are problems with opening file. (First try)\n\n");
         exit(EXIT_FAILURE);
     } else {
-        printf("File is opened. (First try)");
+        printf("File is opened. (First try)\n\n");
         fclose(file);
     }
 
@@ -37,13 +37,13 @@ int main(int argc, char* argv[]){
 
     file = fopen(argv[1], "r");
 
-    printf("New real user ID: %d\n New effective user ID: %d\n\n", getuid(), geteuid());
+    printf("New real user ID: %d\nNew effective user ID: %d\n\n", getuid(), geteuid());
 
     if(file == NULL){
-        perror("There are problems with opening file. (Second try)");
+        perror("There are problems with opening file. (Second try)\n\n");
         exit(EXIT_FAILURE);
     } else {
-        printf("File is opened. (Second try)");
+        printf("File is opened. (Second try)\n\n");
         fclose(file);
     }
 
