@@ -1,11 +1,21 @@
 #include "list.h"
 
-Node * createNode(char * string){
-    Node * node = (Node*) malloc(sizeof(Node));
+Node* createNode(char* string){
+    Node* node = (Node*) malloc(sizeof(Node));
+
+    if(node == NULL){
+        perror("There is a trouble with allocating memory with malloc for new list node.\n");
+        exit(EXIT_FAILURE);
+    }
 
     int strLength = strlen(string);
 
     char * newStr = (char*) malloc(strLength + 1);
+
+    if(newStr == NULL){
+        perror("There is a trouble with allocating memory with malloc for new node's string.\n");
+        exit(EXIT_FAILURE);
+    }
 
     memccpy(newStr, string, strLength, sizeof(char)*strLength );
 
@@ -15,7 +25,7 @@ Node * createNode(char * string){
     return node;
 }
 
-void push(List * list, Node * node){
+void push(List* list, Node* node){
 
     if(list->head == NULL){
         list->head = node;
@@ -31,12 +41,12 @@ void push(List * list, Node * node){
     list->length += 1;
 }
 
-void initList(List * list){
+void initList(List* list){
     list->head = NULL;
     list->length = 0;
 }
 
-void printList(List * list){
+void printList(List* list){
     if(list->head == NULL){
         printf("%s", "List is empty!");
         return;
@@ -50,12 +60,12 @@ void printList(List * list){
     }
 }
 
-void freeNode(Node * node){
+void freeNode(Node* node){
     free(node->stringValue);
     free(node);
 }
 
-void freeList(List * list){
+void freeList(List* list){
     Node *current = list->head;
     while (current) {
         Node *temp = current;

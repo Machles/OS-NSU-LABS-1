@@ -15,8 +15,19 @@
 int main() {
     char stopSymbol = '.';
     int currentStringLength = 0;
-    char * inputHolder = (char*) malloc(INPUT_HOLDER_SIZE + 1);
-    List * list = (List*) malloc(sizeof(List));
+
+    char* inputHolder = (char*) malloc(INPUT_HOLDER_SIZE + 1);
+    if(inputHolder == NULL){
+        perror("There is a trouble with allocating memory with malloc for inputHolder.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    List* list = (List*) malloc(sizeof(List));
+    if(list == NULL){
+        perror("There is a trouble with allocating memory with malloc for list.\n");
+        exit(EXIT_FAILURE);
+    }
+
     initList(list);
 
     while (fgets(inputHolder, INPUT_HOLDER_SIZE, stdin)){
@@ -32,8 +43,10 @@ int main() {
     }
 
     printList(list);
+
+    // free() не устанавливает errno в случае ошибки
     free(inputHolder);
     freeList(list);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
