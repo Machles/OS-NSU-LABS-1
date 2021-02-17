@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include "list.h"
-#include "string.h"
+#include <errno.h>
 
 #define INPUT_HOLDER_SIZE 1024
 
@@ -30,7 +30,9 @@ int main() {
 
     initList(list);
 
-    while (fgets(inputHolder, INPUT_HOLDER_SIZE, stdin)){
+    char * readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
+
+    while (readingResult != NULL){
         currentStringLength = ( (int) strlen(inputHolder) ) - 1;
         inputHolder[currentStringLength] = '\0'; /* Избавились от \n, заменив на \0 */
 
@@ -40,6 +42,11 @@ int main() {
             push(list, createNode(inputHolder) );
         }
 
+        readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
+    }
+
+    if(readingResult == NULL){
+        perror("There is troubles with reading from stream. ");
     }
 
     printList(list);

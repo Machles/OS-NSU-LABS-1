@@ -29,6 +29,7 @@ void push(List* list, Node* node){
 
     if(list->head == NULL){
         list->head = node;
+        list->length += 1;
         return;
     }
 
@@ -58,6 +59,8 @@ void printList(List* list){
         printf("%s\n", current->stringValue);
         current = current->next;
     }
+
+    printf("\nList length %d.", list->length);
 }
 
 void freeNode(Node* node){
