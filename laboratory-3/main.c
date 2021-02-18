@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include <unistd.h>
 #include <sys/types.h>
-
+#define SUCCESS_STATUS 0
 /*
  * Создайте файл данных, который может писать и читать только владелец (это можно сделать командой shell chmod 600 file) и напишите программу, которая
     Печатает реальный и эффективный идентификаторы пользователя.
@@ -21,30 +21,42 @@
 int main(int argc, char* argv[]){
     FILE* file = NULL;
 
-    file = fopen(argv[1], "r");
+    file = fopen("test.txt", "r");
 
     printf("Real user ID: %d\nEffective user ID: %d\n\n", getuid(), geteuid());
 
     if(file == NULL){
-        perror("There are problems with opening file. (First try)\n\n");
-        exit(EXIT_FAILURE);
+        perror("There are problems with opening file. (First try)");
     } else {
         printf("File is opened. (First try)\n\n");
-        fclose(file);
+        int statusOfClosingFile = fclose(file);
+        if(statusOfClosingFile != SUCCESS_STATUS){
+            perror("There are problems with closing file.");
+            exit(EXIT_FAILURE);
+        }
     }
 
-    setuid(getuid());
+    int statusOfSettingUID = setuid(getuid());
 
-    file = fopen(argv[1], "r");
+    if(statusOfSettingUID == -1){
+        perror("There are problems with setting UID.");
+        exit(EXIT_FAILURE);
+    }
+
+    file = fopen("test.txt", "r");
 
     printf("New real user ID: %d\nNew effective user ID: %d\n\n", getuid(), geteuid());
 
     if(file == NULL){
-        perror("There are problems with opening file. (Second try)\n\n");
+        perror("There are problems with opening file. (Second try)");
         exit(EXIT_FAILURE);
     } else {
         printf("File is opened. (Second try)\n\n");
-        fclose(file);
+        int statusOfClosingFile = fclose(file);
+        if(statusOfClosingFile != SUCCESS_STATUS){
+            perror("There are problems with closing file.");
+            exit(EXIT_FAILURE);
+        }
     }
 
     return EXIT_SUCCESS;
