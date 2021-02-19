@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ulimit.h>
 
 #define PATH_MAX 100
 #define STATUS_SUCCESS 0
@@ -16,7 +17,7 @@
  *  Done. -i  Печатает реальные и эффективные идентификаторы пользователя и группы.
  *  Done. -s  Процесс становится лидером группы. Подсказка: смотри setpgid(2).
  *  Done. -p  Печатает идентификаторы процесса, процесса-родителя и группы процессов.
- *   -u  Печатает значение ulimit
+ *  Done. -u  Печатает значение ulimit
  *   -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C)
  *   -c  Печатает размер в байтах core-файла, который может быть создан.
  *   -Csize  Изменяет размер core-файла
@@ -47,6 +48,7 @@ int main(int argc, char* argv[]){
     }
 
     int status = STATUS_SUCCESS;
+    long ulimitValue = STATUS_FAIL;
 
     while (currentArg !=  EOF){
         switch (currentArg) {
@@ -70,6 +72,12 @@ int main(int argc, char* argv[]){
                 printf("Group of Processes ID: %d\n", getpgid(0) );
                 break;
             case 'u':
+                ulimitValue = ulimit(UL_GETFSIZE, 0);
+                if(ulimitValue == STATUS_FAIL){
+                    perror("There are problems with getting ulimit.\n");
+                } else {
+                    printf("ulimit is: %lu\n", ulimitValue);
+                }
                 break;
             case 'U':
                 break;
