@@ -2,7 +2,8 @@
 #include "stdio.h"
 #include <unistd.h>
 #include <sys/types.h>
-#define SUCCESS_STATUS 0
+#define STATUS_SUCCESS 0
+#define STATUS_FAIL -1
 /*
  * Создайте файл данных, который может писать и читать только владелец (это можно сделать командой shell chmod 600 file) и напишите программу, которая
     Печатает реальный и эффективный идентификаторы пользователя.
@@ -29,16 +30,16 @@ int main(int argc, char* argv[]){
         perror("There are problems with opening file. (First try)");
     } else {
         printf("File is opened. (First try)\n\n");
-        int statusOfClosingFile = fclose(file);
-        if(statusOfClosingFile != SUCCESS_STATUS){
+        int closingFileStatus = fclose(file);
+        if(closingFileStatus != STATUS_SUCCESS){
             perror("There are problems with closing file.");
             exit(EXIT_FAILURE);
         }
     }
 
-    int statusOfSettingUID = setuid(getuid());
+    int settingUIDStatus = setuid(getuid());
 
-    if(statusOfSettingUID == -1){
+    if(settingUIDStatus == STATUS_FAIL){
         perror("There are problems with setting UID.");
         exit(EXIT_FAILURE);
     }
@@ -52,8 +53,8 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     } else {
         printf("File is opened. (Second try)\n\n");
-        int statusOfClosingFile = fclose(file);
-        if(statusOfClosingFile != SUCCESS_STATUS){
+        int closingFileStatus = fclose(file);
+        if(closingFileStatus != STATUS_SUCCESS){
             perror("There are problems with closing file.");
             exit(EXIT_FAILURE);
         }
