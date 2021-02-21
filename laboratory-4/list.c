@@ -5,7 +5,7 @@ Node* createNode(char* string){
 
     if(node == NULL){
         perror("There is a trouble with allocating memory with malloc for new list node.\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     int strLength = strlen(string);
@@ -26,6 +26,19 @@ Node* createNode(char* string){
 }
 
 void push(List* list, Node* node){
+
+    if(node == NULL){
+        return;
+    }
+
+    if(list == NULL){
+        list = (List*) malloc(sizeof(List));
+        initList(list);
+        if(list == NULL){
+            perror("There is a trouble with allocating memory with malloc for list.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
 
     if(list->head == NULL){
         list->head = node;
