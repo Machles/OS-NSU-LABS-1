@@ -32,8 +32,6 @@ int main() {
 
     char * readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
 
-    push(list, NULL);
-
     while (readingResult != NULL){
         currentStringLength = ( (int) strlen(inputHolder) ) - 1;
         inputHolder[currentStringLength] = '\0'; /* Избавились от \n, заменив на \0 */
