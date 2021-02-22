@@ -89,7 +89,10 @@ int main(int argc, char* argv[]){
                 break;
             case 'U':
                 UValuePointer = optarg;
-                //ulimit()
+                status = ulimit(UL_SETFSIZE, atol(optarg));
+                if(status == STATUS_FAIL){
+                    perror("There are problems with setting new ulimit value.\n");
+                }
                 printf("%s", UValuePointer);
                 break;
             case 'c':
