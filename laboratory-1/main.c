@@ -106,7 +106,7 @@ int main(int argc, char* argv[]){
                 rlp.rlim_cur = atol(CValuePointer);
 
                 if (setrlimit(RLIMIT_CORE, &rlp) == STATUS_FAIL)
-                    perror( "Only super-user can change file-core size.\n");
+                    perror( "There are some problems with setting new value of ulimit.\n");
                 break;
             case 'd':
                 pathHolder = getcwd(NULL, PATH_MAX);
