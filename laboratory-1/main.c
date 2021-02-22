@@ -3,12 +3,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ulimit.h>
+#include <sys/resource.h>
 
 #define PATH_MAX 100
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
 
 /*
+ *
  * Напишите программу, которая будет обрабатывать опции, приведенные ниже. Опции должны быть обработаны в соответствии с порядком своего появления справа налево.
  * Одной и той же опции разрешено появляться несколько раз. Используйте getopt(3C) для определения имеющихся опций.
  * Сначала пусть ваша программа обрабатывает только некоторые опции. Затем добавьте еще, до тех пор, пока все требуемые опции не будут обрабатываться.
@@ -19,11 +21,11 @@
  *  Done. -p  Печатает идентификаторы процесса, процесса-родителя и группы процессов.
  *  Done. -u  Печатает значение ulimit
  *   -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C)
- *   -c  Печатает размер в байтах core-файла, который может быть создан.
- *   -Csize  Изменяет размер core-файла
+ *  Done. -c  Печатает размер в байтах core-файла, который может быть создан.
+ *  Done. -Csize  Изменяет размер core-файла
  *  Done. -d  Печатает текущую рабочую директорию
  *  Done. -v  Распечатывает переменные среды и их значения
- *   -Vname=value  Вносит новую переменную в среду или изменяет значение существующей переменной.
+ *  Done. -Vname=value  Вносит новую переменную в среду или изменяет значение существующей переменной.
  *
  * Проверьте вашу программу на различных списках аргументов, в том числе:
  *
@@ -40,15 +42,21 @@ int main(int argc, char* argv[]){
     int currentArg;
     currentArg = getopt(argc, argv, options);
 
+    struct rlimit rlp;
+    int coreFileSize = STATUS_FAIL;
+    long ulimitValue = STATUS_FAIL;
+    int status = STATUS_SUCCESS;
+
+    char* UValuePointer;
+    char* CValuePointer;
+    char* VValuePointer;
+
     char* pathHolder = NULL;
 
     if(argc == 1){
         printf( "No options here.\n");
         return 0;
     }
-
-    int status = STATUS_SUCCESS;
-    long ulimitValue = STATUS_FAIL;
 
     while (currentArg !=  EOF){
         switch (currentArg) {
@@ -80,17 +88,32 @@ int main(int argc, char* argv[]){
                 }
                 break;
             case 'U':
+                UValuePointer = optarg;
+                //ulimit()
+                printf("%s", UValuePointer);
                 break;
             case 'c':
+                coreFileSize = getrlimit(RLIMIT_CORE, &rlp);
+                if(coreFileSize == STATUS_FAIL){
+                    perror("There are problems with getting core-file size.");
+                }
+                printf("Core Size is: %lu", rlp.rlim_cur );
                 break;
             case 'C':
+                CValuePointer = optarg;
+
+                getrlimit(RLIMIT_CORE, &rlp);
+                rlp.rlim_cur = atol(CValuePointer);
+
+                if (setrlimit(RLIMIT_CORE, &rlp) == STATUS_FAIL)
+                    perror( "Only super-user can change file-core size.\n");
                 break;
             case 'd':
                 pathHolder = getcwd(NULL, PATH_MAX);
                 if (pathHolder != NULL) {
                     printf("Current Working Directory: %s\n", pathHolder);
                 } else {
-                    perror("There are problems with getcwd(). ");
+                    perror("There are problems with getcwd().");
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -101,8 +124,13 @@ int main(int argc, char* argv[]){
                 }
                 break;
             case 'V':
+                VValuePointer = optarg;
+                status = putenv(VValuePointer);
+                if(status != STATUS_SUCCESS){
+                    perror("There are problems with putting new environmental variable.");
+                }
                 break;
-            default:
+            case '?':
                 fprintf(stderr, "Option isn't correct!");
                 exit(EXIT_FAILURE);
         }
