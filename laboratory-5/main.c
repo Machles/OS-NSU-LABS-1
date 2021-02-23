@@ -8,9 +8,14 @@
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
 #define MAX_NUMBER_OF_STRING 1000
-#define OUTPUT_STREAM_FILE_DESCRIPTOR 1
 
-int fillTable(long* offsetsFile_T, long* stringLengthFile_T, char* inputHolder, int fileDescriptorIn){
+int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorIn){
+
+    char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
+    if(inputHolder == NULL){
+        perror("There are problems with allocating memory with malloc.\n");
+        exit(EXIT_FAILURE);
+    }
 
     size_t indexInInputHolder = 0;
     size_t currentStringLength = 0;
@@ -41,7 +46,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, char* inputHolder, 
     return indexInTable;
 }
 
-char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, char* inputHolder, int stringsAmount){
+char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, int stringsAmount){
     int stringNumber = -1;
     size_t indexInInputHolder = 0;
     long currentBufferSize = INPUT_HOLDER_SIZE;
@@ -63,14 +68,17 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
         lseek(fileDescriptorIn, offsetFile_T[stringNumber-1], SEEK_SET);
 
         currentBufferSize = stringLengthFile_T[stringNumber-1];
-        inputHolder = realloc(inputHolder, currentBufferSize);
+        char *stringHolder = (char*) malloc(currentBufferSize);
+        if(stringHolder == NULL){
+            perror("There are problems with allocating memory with malloc.\n");
+            exit(EXIT_FAILURE);
+        }
 
-        if( (readSymbols = read(fileDescriptorIn, inputHolder, stringLengthFile_T[stringNumber-1]+1)) == STATUS_FAIL){
+        if( (readSymbols = read(fileDescriptorIn, stringHolder, stringLengthFile_T[stringNumber-1]-1 )) == STATUS_FAIL){
             perror("String number is invalid!");
         }
 
-        write(OUTPUT_STREAM_FILE_DESCRIPTOR, inputHolder, stringLengthFile_T[stringNumber-1]);
-        //printf("%s\n", inputHolder);
+        printf("%s\n", stringHolder);
 
     }
 }
@@ -82,12 +90,6 @@ int main(int argc, char* argv[]){
     long offsetsFile_T[256];
     long stringLengthFile_T[256];
 
-    char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
-    if(inputHolder == NULL){
-        perror("There are problems with allocating memory with malloc.\n");
-        exit(EXIT_FAILURE);
-    }
-
     if(argc < 2){
         printf("Not enough arguments entered.\n");
     }
@@ -96,9 +98,9 @@ int main(int argc, char* argv[]){
         perror("There are problems while reading file.");
     }
 
-    int stringsAmount = fillTable(offsetsFile_T, stringLengthFile_T, inputHolder, fileDescriptorIn);
+    int stringsAmount = fillTable(offsetsFile_T, stringLengthFile_T, fileDescriptorIn);
 
-    getStringByNumber(fileDescriptorIn, offsetsFile_T, stringLengthFile_T, inputHolder, stringsAmount);
+    getStringByNumber(fileDescriptorIn, offsetsFile_T, stringLengthFile_T, stringsAmount);
 
     return EXIT_SUCCESS;
 }
