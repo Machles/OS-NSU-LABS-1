@@ -8,24 +8,22 @@
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
 #define MAX_NUMBER_OF_STRING 1000
+#define OUTPUT_STREAM_FILE_DESCRIPTOR 1
 
-int fillTable(long* offsetsFile_T, long* stringLengthFile_T, char* inputHolder, int fileDescriptorIn, int readSymbols){
+int fillTable(long* offsetsFile_T, long* stringLengthFile_T, char* inputHolder, int fileDescriptorIn){
 
     size_t indexInInputHolder = 0;
-
     size_t currentStringLength = 0;
     size_t indexInTable = 0;
+    int readSymbols = -1;
 
     if( (readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE)) == STATUS_FAIL){
         perror("There are problems with reading file.");
     }
 
     while (readSymbols > 0){
-
         while(indexInInputHolder < readSymbols){
-
             currentStringLength++;
-
             if(inputHolder[indexInInputHolder] == '\n'){
 
                 offsetsFile_T[indexInTable] = indexInInputHolder + 1 - currentStringLength;
@@ -33,49 +31,53 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, char* inputHolder, 
 
                 currentStringLength = 0;
             }
-
             indexInInputHolder++;
-
         }
-
         if( (readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE)) == STATUS_FAIL){
             perror("There are problems with reading file.");
         }
-
     }
 
     return indexInTable;
-
 }
 
-char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, char* inputHolder){
+char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, char* inputHolder, int stringsAmount){
     int stringNumber = -1;
     size_t indexInInputHolder = 0;
     long currentBufferSize = INPUT_HOLDER_SIZE;
+    int stopNumber = 0;
+    int readSymbols = -1;
 
-    while(printf("Enter number of line, which you want to see: ") && scanf("%d", &stringNumber)){
+    while(printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsAmount)
+        && scanf("%d", &stringNumber)){
+
         if(stringNumber < 0 || stringNumber >= MAX_NUMBER_OF_STRING){
             fprintf(stderr, "Invalid string number!");
         }
 
-        if(stringNumber == 0){
+        if(stringNumber == stopNumber){
             printf("Stop number!");
             exit(EXIT_FAILURE);
         }
 
-        lseek(fileDescriptorIn, offsetFile_T[stringNumber+1], SEEK_CUR);
+        lseek(fileDescriptorIn, offsetFile_T[stringNumber-1], SEEK_SET);
 
-        if( stringLengthFile_T[stringNumber+1] < currentBufferSize){
-            currentBufferSize = stringLengthFile_T[stringNumber+1];
-            //realloc(inputHolder, currentBufferSize);
+        currentBufferSize = stringLengthFile_T[stringNumber-1];
+        inputHolder = realloc(inputHolder, currentBufferSize);
+
+        if( (readSymbols = read(fileDescriptorIn, inputHolder, stringLengthFile_T[stringNumber-1]+1)) == STATUS_FAIL){
+            perror("String number is invalid!");
         }
+
+        write(OUTPUT_STREAM_FILE_DESCRIPTOR, inputHolder, stringLengthFile_T[stringNumber-1]);
+        //printf("%s\n", inputHolder);
+
     }
 }
 
 int main(int argc, char* argv[]){
 
     int fileDescriptorIn = 0;
-    int readSymbols;
 
     long offsetsFile_T[256];
     long stringLengthFile_T[256];
@@ -94,14 +96,9 @@ int main(int argc, char* argv[]){
         perror("There are problems while reading file.");
     }
 
-    int stringsAmount = fillTable(offsetsFile_T, stringLengthFile_T, inputHolder, fileDescriptorIn, readSymbols);
+    int stringsAmount = fillTable(offsetsFile_T, stringLengthFile_T, inputHolder, fileDescriptorIn);
 
-    for (int i = 0; i < stringsAmount; ++i) {
-        printf("%lu ", offsetsFile_T[i]);
-        printf("%lu\n", stringLengthFile_T[i]);
-    }
-
-    //getStringByNumber(inputHolder);
+    getStringByNumber(fileDescriptorIn, offsetsFile_T, stringLengthFile_T, inputHolder, stringsAmount);
 
     return EXIT_SUCCESS;
 }
