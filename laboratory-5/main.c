@@ -24,6 +24,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
 
     if( (readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE)) == STATUS_FAIL){
         perror("There are problems with reading file.");
+        exit(STATUS_FAIL);
     }
 
     while (readSymbols > 0){
@@ -40,6 +41,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
         }
         if( (readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE)) == STATUS_FAIL){
             perror("There are problems with reading file.");
+            exit(STATUS_FAIL);
         }
     }
 
@@ -48,7 +50,6 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
 
 char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, int stringsAmount){
     int stringNumber = -1;
-    size_t indexInInputHolder = 0;
     long currentBufferSize = INPUT_HOLDER_SIZE;
     int stopNumber = 0;
     int readSymbols = -1;
@@ -61,7 +62,7 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
         }
 
         if(stringNumber == stopNumber){
-            printf("Stop number!");
+            printf("Stop number!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -74,8 +75,9 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
             exit(EXIT_FAILURE);
         }
 
-        if( (readSymbols = read(fileDescriptorIn, stringHolder, stringLengthFile_T[stringNumber-1]-1 )) == STATUS_FAIL){
+        if( ( readSymbols = read(fileDescriptorIn, stringHolder, stringLengthFile_T[stringNumber-1]-1) ) == STATUS_FAIL){
             perror("String number is invalid!");
+            exit(STATUS_FAIL);
         }
 
         printf("%s\n", stringHolder);
@@ -92,10 +94,12 @@ int main(int argc, char* argv[]){
 
     if(argc < 2){
         printf("Not enough arguments entered.\n");
+        exit(STATUS_FAIL);
     }
 
     if( (fileDescriptorIn = open(argv[1], O_RDONLY, 0600)) == STATUS_FAIL){
         perror("There are problems while reading file.");
+        exit(STATUS_FAIL);
     }
 
     int stringsAmount = fillTable(offsetsFile_T, stringLengthFile_T, fileDescriptorIn);
