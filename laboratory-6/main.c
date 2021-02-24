@@ -56,15 +56,18 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
     int flag = 0;
 
     while(1){
-        printf("There are %d strings.", stringsAmount);
+        printf("There are %d strings.\n", stringsAmount);
         printf("Enter number of line, which you want to see: ");
+        fflush(stdout);
         sleep(5);
 
         scanf("%d", &stringNumber);
 
         flag = fcntl(fileDescriptorIn, F_GETFL);
+        printf("%d\n", flag);
         flag &= ~O_NONBLOCK;
         fcntl(fileDescriptorIn, F_SETFL, flag);
+        printf("%d\n", flag);
 
         if(stringNumber < 0 || stringNumber >= MAX_NUMBER_OF_STRING){
             fprintf(stderr, "Invalid string number!");
