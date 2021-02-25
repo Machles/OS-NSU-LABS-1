@@ -29,8 +29,8 @@
  *
  * Проверьте вашу программу на различных списках аргументов, в том числе:
  *
- *   Нет аргументов
- *   Недопустимую опцию.
+ *  Done. Нет аргументов
+ *  Done. Недопустимую опцию.
  *   Опции, разделенные знаком минус.
  *   Неудачное значение для U.
  *
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
     struct rlimit rlp;
     int coreFileSize = STATUS_FAIL;
     long ulimitValue = STATUS_FAIL;
-    int status = STATUS_SUCCESS;
+    long status = STATUS_SUCCESS;
 
     char* UValuePointer;
     char* CValuePointer;
@@ -80,11 +80,11 @@ int main(int argc, char* argv[]){
                 printf("Group of Processes ID: %d\n", getpgid(0) );
                 break;
             case 'u':
-                ulimitValue = ulimit(UL_GETFSIZE, 0);
+                ulimitValue = ulimit(UL_GETFSIZE);
                 if(ulimitValue == STATUS_FAIL){
                     perror("There are problems with getting ulimit.\n");
                 } else {
-                    printf("ulimit is: %lu\n", ulimitValue);
+                    printf("Current max file size for process is: %lu\n", ulimitValue);
                 }
                 break;
             case 'U':
@@ -134,11 +134,11 @@ int main(int argc, char* argv[]){
                 }
                 break;
             case '?':
-                fprintf(stderr, "Option isn't correct!");
+                fprintf(stderr, "Option isn't correct!\n");
                 exit(EXIT_FAILURE);
         }
         currentArg = getopt(argc, argv, options);
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
