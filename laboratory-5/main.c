@@ -14,7 +14,10 @@
 
 extern int errno;
 
-long getStringNumber(){
+long getStringNumber(int stringsCount){
+    printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
+    fflush(stdout);
+
     char *numberHolder = (char*)malloc(INPUT_HOLDER_SIZE);
     if(numberHolder == NULL){
         perror("There are problems with allocating memory with malloc");
@@ -81,42 +84,42 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
     return indexInTable;
 }
 
-int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, int stringsAmount){
+int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
     int readSymbols = -1;
     long stringNumber = 1;
     int status = 0;
+    char *stringHolder = NULL;
 
-    while(1){
+    stringNumber = getStringNumber(stringsCount);
 
-        printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsAmount);
-        fflush(stdout);
+    while(stringNumber != stopNumber){
 
-        stringNumber = getStringNumber();
-
-        if(stringNumber == 0){
-            printf("Stop number!\n");
-            break;
-        }
-
-        if(stringNumber < 0 || stringNumber > stringsAmount){
+        if(stringNumber < 0 || stringNumber > stringsCount){
+            if(stringNumber == -1){
+                free(stringHolder);
+                return STATUS_FAIL;
+            }
             fprintf(stderr, "Invalid string number!\n");
             fflush(stdout);
+            stringNumber = getStringNumber(stringsCount);
             continue;
         }
 
         status = lseek(fileDescriptorIn, offsetFile_T[stringNumber-1], SEEK_SET);
         if(status == STATUS_FAIL){
             perror("There are problems with setting position in file");
+            free(stringHolder);
             // EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
             return STATUS_FAIL;
         }
 
         currentBufferSize = stringLengthFile_T[stringNumber-1];
-        char *stringHolder = (char*) malloc(currentBufferSize);
+        stringHolder = (char*) malloc(currentBufferSize);
         if(stringHolder == NULL){
             perror("There are problems with allocating memory with malloc");
+            free(stringHolder);
             return STATUS_FAIL;
         }
 
@@ -130,7 +133,11 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
 
         printf("%s\n", stringHolder);
         free(stringHolder);
+
+        stringNumber = getStringNumber(stringsCount);
     }
+
+    printf("Stop number!\n");
 
     return STATUS_SUCCESS;
 }
