@@ -88,7 +88,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
     long stringNumber = 1;
     int status = 0;
 
-    while(stringNumber != stopNumber){
+    while(1){
 
         printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsAmount);
         fflush(stdout);
