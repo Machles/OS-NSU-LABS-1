@@ -13,7 +13,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
 
     char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
     if(inputHolder == NULL){
-        perror("There are problems with allocating memory with malloc.\n");
+        perror("There are problems with allocating memory with malloc.");
         exit(EXIT_FAILURE);
     }
 
@@ -53,12 +53,21 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
     long currentBufferSize = INPUT_HOLDER_SIZE;
     int stopNumber = 0;
     int readSymbols = -1;
+    long continueFlag = 1;
 
-    while(printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsAmount)
-        && scanf("%d", &stringNumber)){
+    while(continueFlag){
 
-        if(stringNumber < 0 || stringNumber >= MAX_NUMBER_OF_STRING){
-            fprintf(stderr, "Invalid string number!");
+        printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsAmount);
+        continueFlag = scanf("%d", &stringNumber);
+
+        if(continueFlag == 0){
+            perror("It isn't a number");
+            continue;
+        }
+
+        if(stringNumber < 0 || stringNumber > stringsAmount){
+            fprintf(stderr, "Invalid string number!\n");
+            continue;
         }
 
         if(stringNumber == stopNumber){
@@ -71,7 +80,7 @@ char* getStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
         currentBufferSize = stringLengthFile_T[stringNumber-1];
         char *stringHolder = (char*) malloc(currentBufferSize);
         if(stringHolder == NULL){
-            perror("There are problems with allocating memory with malloc.\n");
+            perror("There are problems with allocating memory with malloc.");
             exit(EXIT_FAILURE);
         }
 
