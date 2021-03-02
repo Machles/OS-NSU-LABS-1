@@ -13,37 +13,44 @@
 #define STDIN 0
 
 extern int errno;
+/// Объясните почему нельзя использовать scanf?
 
 long getStringNumber(int stringsCount){
+    char *endptr = NULL;
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
-    fflush(stdout);
+    int status = fflush(stdout);
+    if(status != STATUS_SUCCESS){
+        perror("There are problems while getting your number, exactly with fflush command");
+        return STATUS_FAIL;
+    }
 
     char *numberHolder = (char*)malloc(INPUT_HOLDER_SIZE);
     if(numberHolder == NULL){
-        perror("There are problems with allocating memory with malloc");
+        perror("There are problems while getting your number, exactly with allocating memory with malloc");
         return STATUS_FAIL;
     }
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
-    if( readSymbols == STATUS_FAIL){
-        perror("There are problems with reading file");
+    if(readSymbols == STATUS_FAIL){
+        perror("There are problems while getting your number, exactly with reading file");
         free(numberHolder);
         return STATUS_FAIL;
     }
 
-    long stringNumber = strtol(numberHolder, NULL, 10);
-    if(stringNumber == 0 && errno != STATUS_SUCCESS){
-        perror("There are troubles with converting string to long");
+    long stringNumber = strtol(numberHolder, &endptr, 10);
+    if(stringNumber == 0 && endptr != NULL){
+        fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.");
+        free(numberHolder);
         return STATUS_FAIL;
     }
 
     return stringNumber;
 }
 
-int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorIn){
+int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDescriptorIn){
 
     char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
     if(inputHolder == NULL){
-        perror("There are problems with allocating memory with malloc");
+        perror("There are problems while filling table, exactly with allocating memory with malloc");
         return STATUS_FAIL;
     }
 
@@ -54,7 +61,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
 
     readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
     if( readSymbols == STATUS_FAIL){
-        perror("There are problems with reading file");
+        perror("There are problems while filling table, exactly with reading file");
         free(inputHolder);
         return STATUS_FAIL;
     }
@@ -64,8 +71,8 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
             currentStringLength++;
             if(inputHolder[indexInInputHolder] == '\n'){
 
-                offsetsFile_T[indexInTable] = indexInInputHolder + 1 - currentStringLength;
-                stringLengthFile_T[indexInTable++] = currentStringLength;
+                offsetsFileTable[indexInTable] = indexInInputHolder + 1 - currentStringLength;
+                stringsLengthsFileTable[indexInTable++] = currentStringLength;
 
                 currentStringLength = 0;
             }
@@ -73,7 +80,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
         }
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
         if( readSymbols == STATUS_FAIL){
-            perror("There are problems with reading file");
+            perror("There are problems while filling table, exactly with reading file");
             free(inputHolder);
             return STATUS_FAIL;
         }
@@ -84,7 +91,7 @@ int fillTable(long* offsetsFile_T, long* stringLengthFile_T, int fileDescriptorI
     return indexInTable;
 }
 
-int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* stringLengthFile_T, int stringsCount){
+int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
     int readSymbols = -1;
@@ -93,37 +100,42 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFile_T, const long* st
     char *stringHolder = NULL;
 
     stringNumber = getStringNumber(stringsCount);
+    if(stringNumber == -1){
+        return STATUS_FAIL;
+    }
 
     while(stringNumber != stopNumber){
 
         if(stringNumber < 0 || stringNumber > stringsCount){
             if(stringNumber == -1){
-                free(stringHolder);
                 return STATUS_FAIL;
             }
             fprintf(stderr, "Invalid string number!\n");
-            fflush(stdout);
+            int fflushStatus = fflush(stdout);
+            if(fflushStatus != STATUS_SUCCESS){
+                perror("There are problems while printing string by number, exactly with fflush command");
+                return STATUS_FAIL;
+            }
             stringNumber = getStringNumber(stringsCount);
             continue;
         }
 
-        status = lseek(fileDescriptorIn, offsetFile_T[stringNumber-1], SEEK_SET);
+        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber-1], SEEK_SET);
         if(status == STATUS_FAIL){
-            perror("There are problems with setting position in file");
-            free(stringHolder);
+            perror("There are problems while printing string by number, exactly with setting position in file");
             // EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
             return STATUS_FAIL;
         }
 
-        currentBufferSize = stringLengthFile_T[stringNumber-1];
+        currentBufferSize = stringsLengthsFileTable[stringNumber-1];
         stringHolder = (char*) malloc(currentBufferSize);
         if(stringHolder == NULL){
-            perror("There are problems with allocating memory with malloc");
+            perror("There are problems while printing string by number, exactly with allocating memory with malloc");
             free(stringHolder);
             return STATUS_FAIL;
         }
 
-        readSymbols = read(fileDescriptorIn, stringHolder, stringLengthFile_T[stringNumber-1]-1);
+        readSymbols = read(fileDescriptorIn, stringHolder, stringsLengthsFileTable[stringNumber-1]-1);
 
         if(readSymbols == STATUS_FAIL){
             perror("String number is invalid");
@@ -147,7 +159,7 @@ int main(int argc, char* argv[]){
     int fileDescriptorIn = 0;
 
     long offsetsFileTable[256];
-    long stringLengthFileTable[256];
+    long stringsLengthsFileTable[256];
     int status;
 
     if(argc < 2){
@@ -160,17 +172,15 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
 
-    int stringsCount = fillTable(offsetsFileTable, stringLengthFileTable, fileDescriptorIn);
+    int stringsCount = fillTable(offsetsFileTable, stringsLengthsFileTable, fileDescriptorIn);
 
     if(stringsCount == STATUS_FAIL){
-        fprintf(stderr, "There are problems while filling table.");
         return EXIT_FAILURE;
     }
 
-    status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringLengthFileTable, stringsCount);
+    status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
 
     if(status == STATUS_FAIL) {
-        fprintf(stderr, "There are problems while printing string by number.");
         return EXIT_FAILURE;
     }
 
