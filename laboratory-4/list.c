@@ -46,12 +46,8 @@ void push(List* list, Node* node){
         return;
     }
 
-    Node * current = list->head;
-    while(current->next != NULL){
-        current = current->next;
-    }
-
-    current->next = node;
+    node->next = list->head;
+    list->head = node;
     list->length += 1;
 }
 
