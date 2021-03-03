@@ -14,7 +14,8 @@
 
 extern int errno;
 /// Объясните почему нельзя использовать scanf?
-
+/* strtol будет лучше и понятнее себя вести, когда на вход попадет очень больше число, если оно окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт -1 и установит errno ERANGE.
+ */
 long getStringNumber(int stringsCount){
     char *endptr = NULL;
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
@@ -38,7 +39,7 @@ long getStringNumber(int stringsCount){
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
     if(stringNumber == 0 && endptr != NULL){
-        fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.");
+        fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.\n");
         free(numberHolder);
         return STATUS_FAIL;
     }
@@ -57,9 +58,8 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     size_t indexInInputHolder = 0;
     size_t currentStringLength = 0;
     size_t indexInTable = 0;
-    int readSymbols = -1;
+    int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
-    readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
     if( readSymbols == STATUS_FAIL){
         perror("There are problems while filling table, exactly with reading file");
         free(inputHolder);
@@ -95,11 +95,10 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
     int readSymbols = -1;
-    long stringNumber = 1;
     int status = 0;
     char *stringHolder = NULL;
 
-    stringNumber = getStringNumber(stringsCount);
+    long stringNumber = getStringNumber(stringsCount);
     if(stringNumber == -1){
         return STATUS_FAIL;
     }
@@ -163,7 +162,7 @@ int main(int argc, char* argv[]){
     int status;
 
     if(argc < 2){
-        fprintf(stderr, "Not enough arguments entered.\nusage: progname input_file");
+        fprintf(stderr, "Not enough arguments entered.\nusage: progname input_file\n");
         exit(EXIT_FAILURE);
     }
 
