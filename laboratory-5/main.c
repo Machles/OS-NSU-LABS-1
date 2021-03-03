@@ -14,7 +14,9 @@
 
 extern int errno;
 /// Объясните почему нельзя использовать scanf?
-/* strtol будет лучше и понятнее себя вести, когда на вход попадет очень больше число, если оно окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт -1 и установит errno ERANGE.
+/* strtol будет лучше и понятнее себя вести, когда на вход попадет строка, содержащая очень больше число,
+ * если число окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт -1 и установит errno ERANGE.
+ * В свою очередь, scanf даже не уведомит о том, что что-то не так
  */
 long getStringNumber(int stringsCount){
     char *endptr = NULL;
@@ -122,6 +124,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         status = lseek(fileDescriptorIn, offsetFileTable[stringNumber-1], SEEK_SET);
         if(status == STATUS_FAIL){
             perror("There are problems while printing string by number, exactly with setting position in file");
+            // Какие ошибки может вернуть lseek?
             // EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
             return STATUS_FAIL;
         }
