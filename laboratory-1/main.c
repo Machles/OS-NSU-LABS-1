@@ -48,17 +48,15 @@ void changeUlimitValue(){
     char* UValuePointer = optarg;
     char* endptr;
 
-    long stringNumber = strtol(optarg, &endptr, 10);
+    long stringNumber = strtol(UValuePointer, &endptr, 10);
     if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
         fprintf(stderr, "Invalid ulimit value");
     }
 
-    int status = ulimit(UL_SETFSIZE, atol(optarg));
+    long status = ulimit(UL_SETFSIZE, stringNumber);
     if(status == STATUS_FAIL){
         perror("There are problems with setting new ulimit value.\n");
     }
-
-    printf("%s", UValuePointer);
 }
 
 void printCoreFileSize(){
@@ -73,9 +71,16 @@ void printCoreFileSize(){
 void changeCoreFileSize(){
     struct rlimit rlp;
     char* CValuePointer = optarg;
+    char* endptr;
 
     getrlimit(RLIMIT_CORE, &rlp);
-    rlp.rlim_cur = atol(CValuePointer);
+
+    long stringNumber = strtol(CValuePointer, &endptr, 10);
+    if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
+        fprintf(stderr, "Invalid core file size");
+    }
+
+    rlp.rlim_cur = stringNumber;
 
     if (setrlimit(RLIMIT_CORE, &rlp) == STATUS_FAIL)
         perror( "There are some problems with setting new value of ulimit.\n");
