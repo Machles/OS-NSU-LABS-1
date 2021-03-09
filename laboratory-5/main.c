@@ -18,6 +18,7 @@ extern int errno;
  * если число окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт -1 и установит errno ERANGE.
  * В свою очередь, scanf даже не уведомит о том, что что-то не так
  */
+
 long getStringNumber(int stringsCount){
     char *endptr = NULL;
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
@@ -93,6 +94,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     return indexInTable;
 }
 
+// На самом деле ваша функция ничего не возвращает. Название неподходящее. - Поменял
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
@@ -104,7 +106,9 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
     if(stringNumber == -1){
         return STATUS_FAIL;
     }
-
+    // избегайте слова "flag" в переменных, в большинстве случаев это бессмысленный суффикс
+    // подумайте, каков общий смысл, до каких пор выполняется обработка строк? соответственно дайте название предикату
+    // неявное приведение типов, используйте сравнение с конкретным значением - Флаг заменил на условие достиженяи стопсимвола.
     while(stringNumber != stopNumber){
 
         if(stringNumber < 0 || stringNumber > stringsCount){
@@ -121,6 +125,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             continue;
         }
 
+        /// В описании вы указали, что lseek может возвращать ошибки (какие?) - но обработчика ошибок нет - теперь есть, ниже указаны ошибки
         status = lseek(fileDescriptorIn, offsetFileTable[stringNumber-1], SEEK_SET);
         if(status == STATUS_FAIL){
             perror("There are problems while printing string by number, exactly with setting position in file");
@@ -160,15 +165,20 @@ int main(int argc, char* argv[]){
 
     int fileDescriptorIn = 0;
 
+    /// Названия переменных плохие. Вы одновременно используете camelCase и "_" - выбере что-то одно. "_T" - не говорит ни чём - исправил
     long offsetsFileTable[256];
     long stringsLengthsFileTable[256];
     int status;
 
     if(argc < 2){
+        /// Куда происходит вывод сообщение об ошибке сейчас? а куда следует на самом деле выводить сообщение об ошибке?
+        /// Опишите пример usage для пользотеля так, как это делается в стандартных утилитах. Иначе как пользователь угадает, что от него хотят?
+//      /// Описал
         fprintf(stderr, "Not enough arguments entered.\nusage: progname input_file\n");
         exit(EXIT_FAILURE);
     }
 
+    /// Что такое "0600"? Замените на именованную константу или макрос - Это 8ричное число, которое указывает, что файл читать и писать может только владелец.
     if( (fileDescriptorIn = open(argv[1], O_RDONLY, OWNER_READ_WRITE)) == STATUS_FAIL){
         perror("There are problems while reading file.");
         exit(EXIT_FAILURE);
