@@ -54,10 +54,10 @@ int printUlimitValue(){
 
 int changeUlimitValue(){
     char* UValuePointer = optarg;
-    char* endptr;
+    char* endptr = NULL;
 
     long stringNumber = strtol(UValuePointer, &endptr, 10);
-    if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
+    if(stringNumber < 0){
         fprintf(stderr, "Invalid ulimit value");
         return STATUS_FAIL;
     }
@@ -85,12 +85,12 @@ int printCoreFileSize(){
 int changeCoreFileSize(){
     struct rlimit rlp;
     char* CValuePointer = optarg;
-    char* endptr;
+    char* endptr = NULL;
 
     getrlimit(RLIMIT_CORE, &rlp);
 
     long stringNumber = strtol(CValuePointer, &endptr, 10);
-    if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
+    if(stringNumber < 0){
         fprintf(stderr, "Invalid core-file size");
         return STATUS_FAIL;
     }
