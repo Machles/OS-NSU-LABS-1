@@ -40,7 +40,7 @@ long getStringNumber(int stringsCount){
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber == 0 && endptr != NULL){
+    if(stringNumber < 0){
         fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.\n");
         free(numberHolder);
         return STATUS_FAIL;
