@@ -59,6 +59,7 @@ int changeUlimitValue(){
     long stringNumber = strtol(UValuePointer, &endptr, 10);
     if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
         fprintf(stderr, "Invalid ulimit value");
+        return STATUS_FAIL;
     }
 
     long status = ulimit(UL_SETFSIZE, stringNumber);
@@ -91,6 +92,7 @@ int changeCoreFileSize(){
     long stringNumber = strtol(CValuePointer, &endptr, 10);
     if(stringNumber == 0 && endptr != NULL || stringNumber < 0){
         fprintf(stderr, "Invalid core-file size");
+        return STATUS_FAIL;
     }
 
     rlp.rlim_cur = stringNumber;
