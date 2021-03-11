@@ -5,21 +5,19 @@
 
 #define INPUT_HOLDER_SIZE 1024
 
-
-
 int main() {
     char stopSymbol = '.';
     int currentStringLength = 0;
 
     char* inputHolder = (char*) malloc(INPUT_HOLDER_SIZE + 1);
     if(inputHolder == NULL){
-        perror("There is a trouble with allocating memory with malloc for inputHolder.\n");
+        perror("There is a trouble with allocating memory with malloc for inputHolder");
         exit(EXIT_FAILURE);
     }
 
     List* list = (List*) malloc(sizeof(List));
     if(list == NULL){
-        perror("There is a trouble with allocating memory with malloc for list.\n");
+        perror("There is a trouble with allocating memory with malloc for list");
         exit(EXIT_FAILURE);
     }
 
@@ -35,13 +33,26 @@ int main() {
             break;
         }
 
-        push(list, createNode(inputHolder));
+        /// Ошибки из createNode никак не обрабатываются
+        Node * node = createNode(inputHolder);
+
+        if(node == NULL){
+            fprintf(stderr, "Node hasn't been created");
+            exit(EXIT_FAILURE);
+        }
+
+        int status = push(list, node);
+
+        if(status == STATUS_FAIL){
+            fprintf(stderr, "There are problems with pushing node");
+            exit(EXIT_FAILURE);
+        }
 
         readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
     }
 
     if(readingResult == NULL){
-        perror("There is troubles with reading from stream. ");
+        perror("There is troubles with reading from stream");
     }
 
     printList(list);

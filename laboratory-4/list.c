@@ -4,7 +4,7 @@ Node* createNode(char* string){
     Node* node = (Node*) malloc(sizeof(Node));
 
     if(node == NULL){
-        perror("There is a trouble with allocating memory with malloc for new list node.\n");
+        perror("There is a trouble with allocating memory with malloc for new list node");
         return NULL;
     }
 
@@ -13,8 +13,11 @@ Node* createNode(char* string){
     char * newStr = (char*) malloc(strLength + 1);
 
     if(newStr == NULL){
-        perror("There is a trouble with allocating memory with malloc for new node's string.\n");
-        exit(EXIT_FAILURE);
+        perror("There is a trouble with allocating memory with malloc for new node's string");
+        /// функция создания нового элемента списка не должна завершать процесс. Верните ошибку, обработайте выше,
+        /// все ранее выделенные ресурсы должны быть освобождены явным образом
+        free(node);
+        return NULL;
     }
 
     memccpy(newStr, string, strLength, sizeof(char)*strLength );
@@ -25,30 +28,33 @@ Node* createNode(char* string){
     return node;
 }
 
-void push(List* list, Node* node){
+int push(List* list, Node* node){
 
     if(node == NULL){
-        return;
+        fprintf(stderr, "Invalid node\n");
+        free(list);
+        return STATUS_FAIL;
     }
 
     if(list == NULL){
-        list = (List*) malloc(sizeof(List));
-        initList(list);
-        if(list == NULL){
-            perror("There is a trouble with allocating memory with malloc for list.\n");
-            exit(EXIT_FAILURE);
-        }
+        /// функция добавления элемента в список не должна отвечать за его создание, если список не создан - просто верните
+        /// соответствующую ошибку и обработайте выше
+        fprintf(stderr, "Invalid list\n");
+        free(node);
+        return STATUS_FAIL;
     }
 
     if(list->head == NULL){
         list->head = node;
         list->length += 1;
-        return;
+        return STATUS_SUCCESS;
     }
 
     node->next = list->head;
     list->head = node;
     list->length += 1;
+
+    return STATUS_SUCCESS;
 }
 
 void initList(List* list){
@@ -69,12 +75,13 @@ void printList(List* list){
         current = current->next;
     }
 
-    printf("\nList length %d.", list->length);
+    printf("List length %d.", list->length);
 }
 
 void freeNode(Node* node){
     free(node->stringValue);
     free(node);
+    node = NULL;
 }
 
 void freeList(List* list){
@@ -84,4 +91,5 @@ void freeList(List* list){
         current = current->next;
         freeNode(temp);
     }
+    list = NULL;
 }
