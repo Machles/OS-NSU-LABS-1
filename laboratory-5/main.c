@@ -193,7 +193,8 @@ int main(int argc, char* argv[]){
 
     /// Что такое "0600"? Замените на именованную константу или макрос
     /// Это 8ричное число, которое указывает, что файл читать и писать может только владелец. Заменил на макрос.
-    if( (fileDescriptorIn = open(argv[1], O_RDONLY, OWNER_READ_WRITE)) == STATUS_FAIL){
+    fileDescriptorIn = open(argv[1], O_RDONLY, OWNER_READ_WRITE);
+    if( fileDescriptorIn == STATUS_FAIL ){
         perror("There are problems while reading file.");
         exit(EXIT_FAILURE);
     }
