@@ -8,17 +8,38 @@
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
-#define MAX_NUMBER_OF_STRING 1000
+#define STATUS_TIMEOUT -2
+#define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
 #define STDIN 0
+#define STDOUT 1
+#define MAX_FILEDESC_NUMBER 1
 
 extern int errno;
 
-void printAllFile(){
+int printAllFile(int fileDescriptorIn){
+    char stringHolder[MAX_STRING_LENGTH];
+    int readSymbols;
 
+    int status = lseek(fileDescriptorIn, 0, SEEK_SET);
+    if(status == STATUS_FAIL){
+        perror("printAllFile. There are problems while printing string by number, exactly with setting position in file");
+        return STATUS_FAIL;
+    }
+
+    printf("\n");
+    do {
+        readSymbols = read(fileDescriptorIn, stringHolder, MAX_STRING_LENGTH);
+        if(readSymbols == STATUS_FAIL){
+            perror("printAllFile. Problems with reading file.");
+            return STATUS_FAIL;
+        }
+        write(STDOUT, stringHolder, readSymbols);
+    } while(readSymbols != 0);
+    printf("\n");
 }
 
-long getStringNumber(int stringsCount){
+long getStringNumber(int stringsCount, int fileDescriptorIn){
     fd_set rfds;
     struct timeval tv;
     int selectStatus;
@@ -31,12 +52,6 @@ long getStringNumber(int stringsCount){
 
     char *endptr = NULL;
 
-    selectStatus = select(1, &rfds, NULL, NULL, &tv);
-
-    if(selectStatus < 0){
-        return STATUS_FAIL;
-    }
-
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
     int status = fflush(stdout);
     if(status != STATUS_SUCCESS){
@@ -44,22 +59,24 @@ long getStringNumber(int stringsCount){
         return STATUS_FAIL;
     }
 
-    char *numberHolder = (char*)malloc(INPUT_HOLDER_SIZE);
-    if(numberHolder == NULL){
-        perror("There are problems while getting your number, exactly with allocating memory with malloc");
-        return STATUS_FAIL;
+    selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
+    if(selectStatus == 0){
+        fprintf(stderr, "Time is over! Try again.\n");
+        printAllFile(fileDescriptorIn);
+        return STATUS_TIMEOUT;
     }
+
+    char numberHolder[INPUT_HOLDER_SIZE];
+
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
     if(readSymbols == STATUS_FAIL){
-        perror("There are problems while getting your number, exactly with reading file");
-        free(numberHolder);
+        perror("getStringNumber. There are problems while getting your number, exactly with reading file");
         return STATUS_FAIL;
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber < 0){
-        fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.\n");
-        free(numberHolder);
+    if(stringNumber == -1 || numberHolder == endptr){
+        fprintf(stderr, "getStringNumber. There are problems while getting your number, exactly with converting string to long.\n");
         return STATUS_FAIL;
     }
 
@@ -110,63 +127,51 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     return indexInTable;
 }
 
-int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
+int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount) {
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
-    int readSymbols = -1;
-    int status = 0;
-    char *stringHolder = NULL;
+    int readSymbols;
+    int status;
+    long stringNumber;
 
-    long stringNumber = getStringNumber(stringsCount);
-    if(stringNumber == -1){
-        return STATUS_FAIL;
-    }
+    do {
+        stringNumber = getStringNumber(stringsCount, fileDescriptorIn);
 
-    while(stringNumber != stopNumber){
-
-        if(stringNumber < 0 || stringNumber > stringsCount){
-            if(stringNumber == -1){
+        if (stringNumber < 0 || stringNumber > stringsCount) {
+            if (stringNumber == STATUS_FAIL) {
                 return STATUS_FAIL;
+            } else if (stringNumber == STATUS_TIMEOUT) {
+                continue;
             }
-            fprintf(stderr, "Invalid string number!\n");
-            int fflushStatus = fflush(stdout);
-            if(fflushStatus != STATUS_SUCCESS){
-                perror("There are problems while printing string by number, exactly with fflush command");
-                return STATUS_FAIL;
-            }
-            stringNumber = getStringNumber(stringsCount);
+            fprintf(stderr, "printStringByNumber. Invalid string number! Try again.\n");
             continue;
         }
 
+        if (stringNumber == 0) {
+            break;
+        }
 
-        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber-1], SEEK_SET);
-        if(status == STATUS_FAIL){
+        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
+        if (status == STATUS_FAIL) {
             perror("There are problems while printing string by number, exactly with setting position in file");
             return STATUS_FAIL;
         }
 
-        currentBufferSize = stringsLengthsFileTable[stringNumber-1];
-        stringHolder = (char*) malloc(currentBufferSize);
-        if(stringHolder == NULL){
-            perror("There are problems while printing string by number, exactly with allocating memory with malloc");
-            free(stringHolder);
+        currentBufferSize = stringsLengthsFileTable[stringNumber - 1];
+        char stringHolder[currentBufferSize - 1]; // without \n
+
+        readSymbols = read(fileDescriptorIn, stringHolder, currentBufferSize - 1);
+        if (readSymbols == STATUS_FAIL) {
+            perror("printStringByNumber. String number is invalid");
             return STATUS_FAIL;
         }
 
-        readSymbols = read(fileDescriptorIn, stringHolder, stringsLengthsFileTable[stringNumber-1]-1);
-        if(readSymbols == STATUS_FAIL){
-            perror("String number is invalid");
-            free(stringHolder);
-            return STATUS_FAIL;
-        }
+        write(STDOUT, stringHolder, currentBufferSize - 1);
+        printf("\n");
 
-        printf("%s\n", stringHolder);
-        free(stringHolder);
-        stringNumber = getStringNumber(stringsCount);
-    }
+    } while (stringNumber != stopNumber);
 
     printf("Stop number!\n");
-
     return STATUS_SUCCESS;
 }
 
@@ -200,5 +205,4 @@ int main(int argc, char* argv[]){
     }
 
     return EXIT_SUCCESS;
-
 }
