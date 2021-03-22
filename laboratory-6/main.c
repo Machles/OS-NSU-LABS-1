@@ -63,13 +63,13 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
     int status = fflush(stdout);
     if(status != STATUS_SUCCESS){
-        perror("There are problems while getting your number, exactly with fflush command");
+        perror("getStringNumber. TThere are problems while getting your number, exactly with fflush command");
         return STATUS_FAIL;
     }
 
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
     if(selectStatus == 0){
-        fprintf(stderr, "Time is over! Try again.\n");
+        fprintf(stderr, "getStringNumber. TTime is over! Try again.\n");
         printAllFile(fileDescriptorIn);
         return STATUS_TIMEOUT;
     }
@@ -158,7 +158,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
 
         status = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
         if (status == STATUS_FAIL) {
-            perror("There are problems while printing string by number, exactly with setting position in file");
+            perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");
             return STATUS_FAIL;
         }
 
