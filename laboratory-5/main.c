@@ -8,9 +8,11 @@
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
-#define MAX_NUMBER_OF_STRING 1000
+#define STATUS_NO_NUMCONV -3
+#define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
 #define STDIN 0
+#define STDOUT 1
 
 extern int errno;
 
@@ -24,27 +26,27 @@ long getStringNumber(int stringsCount){
     printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
     int status = fflush(stdout);
     if(status != STATUS_SUCCESS){
-        perror("There are problems while getting your number, exactly with fflush command");
+        perror("getStringNumber. There are problems while getting your number, exactly with fflush command");
         return STATUS_FAIL;
     }
 
-    char *numberHolder = (char*)malloc(INPUT_HOLDER_SIZE);
-    if(numberHolder == NULL){
-        perror("There are problems while getting your number, exactly with allocating memory with malloc");
-        return STATUS_FAIL;
-    }
+    char numberHolder[INPUT_HOLDER_SIZE];
+
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
+
     if(readSymbols == STATUS_FAIL){
-        perror("There are problems while getting your number, exactly with reading file");
-        free(numberHolder);
+        perror("getStringNumber. There are problems while getting your number, exactly with reading file");
         return STATUS_FAIL;
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber < 0){
-        fprintf(stderr, "There are problems while getting your number, exactly with converting string to long.\n");
-        free(numberHolder);
+    if(stringNumber == -1){
+        fprintf(stderr, "getStringNumber. There are problems while getting your number, exactly with converting string to long.\n");
         return STATUS_FAIL;
+    }
+
+    if(numberHolder == endptr){
+        return STATUS_NO_NUMCONV;
     }
 
     return stringNumber;
@@ -52,11 +54,7 @@ long getStringNumber(int stringsCount){
 
 int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDescriptorIn){
 
-    char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
-    if(inputHolder == NULL){
-        perror("There are problems while filling table, exactly with allocating memory with malloc");
-        return STATUS_FAIL;
-    }
+    char inputHolder[INPUT_HOLDER_SIZE];
 
     size_t indexInInputHolder = 0;
     size_t currentStringLength = 0;
@@ -64,8 +62,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
     if( readSymbols == STATUS_FAIL){
-        perror("There are problems while filling table, exactly with reading file");
-        free(inputHolder);
+        perror("fillTable. There are problems while filling table, exactly with reading file");
         return STATUS_FAIL;
     }
 
@@ -83,13 +80,10 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
         }
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
         if( readSymbols == STATUS_FAIL){
-            perror("There are problems while filling table, exactly with reading file");
-            free(inputHolder);
+            perror("fillTable. There are problems while filling table, exactly with reading file");
             return STATUS_FAIL;
         }
     }
-
-    free(inputHolder);
 
     return indexInTable;
 }
@@ -99,73 +93,55 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
     long stopNumber = 0;
-    int readSymbols = -1;
-    int status = 0;
-    char *stringHolder = NULL;
-
-    long stringNumber = getStringNumber(stringsCount);
-    if(stringNumber == -1){
-        return STATUS_FAIL;
-    }
+    int readSymbols;
+    int status;
+    long stringNumber;
 
     /// избегайте слова "flag" в переменных, в большинстве случаев это бессмысленный суффикс
     /// подумайте, каков общий смысл, до каких пор выполняется обработка строк? соответственно дайте название предикату
     /// неявное приведение типов, используйте сравнение с конкретным значением
     /// Флаг заменил на условие достижения стопсимвола.
-    while(stringNumber != stopNumber){
+    do {
+        stringNumber = getStringNumber(stringsCount);
 
-        if(stringNumber < 0 || stringNumber > stringsCount){
-            if(stringNumber == -1){
+        if (stringNumber < 0 || stringNumber > stringsCount) {
+            if (stringNumber == STATUS_FAIL) {
                 return STATUS_FAIL;
             }
-            fprintf(stderr, "Invalid string number!\n");
-            int fflushStatus = fflush(stdout);
-            if(fflushStatus != STATUS_SUCCESS){
-                perror("There are problems while printing string by number, exactly with fflush command");
-                return STATUS_FAIL;
-            }
-            stringNumber = getStringNumber(stringsCount);
+            fprintf(stderr, "printStringByNumber. Invalid string number! Try again.\n");
             continue;
+        }
+
+        if (stringNumber == 0) {
+            break;
         }
 
         /// В описании вы указали, что lseek может возвращать ошибки (какие?) - но обработчика ошибок нет
         /// Теперь есть, ниже указаны ошибки.
-        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber-1], SEEK_SET);
-        if(status == STATUS_FAIL){
-            perror("There are problems while printing string by number, exactly with setting position in file");
+        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
+        if (status == STATUS_FAIL) {
             /// Какие ошибки может вернуть lseek?
             /// EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
+            perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");
             return STATUS_FAIL;
         }
 
-        currentBufferSize = stringsLengthsFileTable[stringNumber-1];
-        stringHolder = (char*) malloc(currentBufferSize);
-        if(stringHolder == NULL){
-            perror("There are problems while printing string by number, exactly with allocating memory with malloc");
-            free(stringHolder);
+        currentBufferSize = stringsLengthsFileTable[stringNumber - 1];
+        char stringHolder[currentBufferSize - 1]; // without \n
 
-            /// exit внутри функций - это, как правило, неожиданное поведение и очень плохая практика
-            /// возвращайте код ошибки, и обрабатывайте его "сверху"
-            /// Исправил
-            return STATUS_FAIL;
-        }
-
-        readSymbols = read(fileDescriptorIn, stringHolder, stringsLengthsFileTable[stringNumber-1]-1);
-
-        if(readSymbols == STATUS_FAIL){
-            perror("String number is invalid");
-            free(stringHolder);
+        readSymbols = read(fileDescriptorIn, stringHolder, currentBufferSize - 1);
+        if (readSymbols == STATUS_FAIL) {
+            perror("printStringByNumber. String number is invalid");
             ///Это очень плохая практика в любой обработке ошибки завершать процесс - это неожиданное поведение, такой код практически нельзя переиспользовать, он очень нестабилен. Нужно исправить.
             /// В общем случае при ошибке: освобождайте ресурсы (где требуется), возвращайте код ошибки, и далее в основном коде обрабатывайте ошибку
             /// Исправил
             return STATUS_FAIL;
         }
 
-        printf("%s\n", stringHolder);
-        free(stringHolder);
+        write(STDOUT, stringHolder, currentBufferSize - 1);
+        printf("\n");
 
-        stringNumber = getStringNumber(stringsCount);
-    }
+    } while (stringNumber != stopNumber);
 
     printf("Stop number!\n");
 
