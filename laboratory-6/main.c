@@ -9,6 +9,7 @@
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
 #define STATUS_TIMEOUT -2
+#define STATUS_NO_NUMCONV -3
 #define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
 #define STDIN 0
@@ -20,6 +21,7 @@ extern int errno;
 int printAllFile(int fileDescriptorIn){
     char stringHolder[MAX_STRING_LENGTH];
     int readSymbols;
+    int writeSymbols;
 
     int status = lseek(fileDescriptorIn, 0, SEEK_SET);
     if(status == STATUS_FAIL){
@@ -34,9 +36,15 @@ int printAllFile(int fileDescriptorIn){
             perror("printAllFile. Problems with reading file.");
             return STATUS_FAIL;
         }
-        write(STDOUT, stringHolder, readSymbols);
+        writeSymbols = write(STDOUT, stringHolder, readSymbols);
+        if(writeSymbols == STATUS_FAIL){
+            perror("printAllFile. Problems with writing data in file.");
+            return STATUS_FAIL;
+        }
     } while(readSymbols != 0);
     printf("\n");
+
+    return STATUS_SUCCESS;
 }
 
 long getStringNumber(int stringsCount, int fileDescriptorIn){
@@ -75,9 +83,13 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber == -1 || numberHolder == endptr){
+    if(stringNumber == -1){
         fprintf(stderr, "getStringNumber. There are problems while getting your number, exactly with converting string to long.\n");
         return STATUS_FAIL;
+    }
+
+    if(numberHolder == endptr){
+        return STATUS_NO_NUMCONV;
     }
 
     return stringNumber;
@@ -85,20 +97,16 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
 
 int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDescriptorIn){
 
-    char *inputHolder = (char*)malloc(INPUT_HOLDER_SIZE);
-    if(inputHolder == NULL){
-        perror("There are problems while filling table, exactly with allocating memory with malloc");
-        return STATUS_FAIL;
-    }
+    char inputHolder[INPUT_HOLDER_SIZE];
 
     size_t indexInInputHolder = 0;
     size_t currentStringLength = 0;
     size_t indexInTable = 0;
+
     int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
     if( readSymbols == STATUS_FAIL){
         perror("There are problems while filling table, exactly with reading file");
-        free(inputHolder);
         return STATUS_FAIL;
     }
 
@@ -116,13 +124,10 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
         }
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
         if( readSymbols == STATUS_FAIL){
-            perror("There are problems while filling table, exactly with reading file");
-            free(inputHolder);
+            perror("fillTable. There are problems while filling table, exactly with reading file");
             return STATUS_FAIL;
         }
     }
-
-    free(inputHolder);
 
     return indexInTable;
 }
