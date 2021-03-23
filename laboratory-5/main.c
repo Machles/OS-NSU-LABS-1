@@ -13,6 +13,7 @@
 #define OWNER_READ_WRITE 0600
 #define STDIN 0
 #define STDOUT 1
+#define TRUE 1
 
 extern int errno;
 
@@ -141,7 +142,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         write(STDOUT, stringHolder, currentBufferSize - 1);
         printf("\n");
 
-    } while (stringNumber != stopNumber);
+    } while (TRUE);
 
     printf("Stop number!\n");
 
