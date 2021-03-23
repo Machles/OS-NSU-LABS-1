@@ -189,6 +189,6 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
+    close(fileDescriptorIn);
     return EXIT_SUCCESS;
-
 }
