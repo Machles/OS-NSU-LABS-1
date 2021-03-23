@@ -12,6 +12,8 @@
 #define STATUS_NO_NUMCONV -3
 #define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
+#define TIMEOUT_SEC 5
+#define TIMEOUT_USEC 0
 #define STDIN 0
 #define STDOUT 1
 #define MAX_FILEDESC_NUMBER 1
@@ -55,12 +57,12 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     FD_ZERO(&rfds);
     FD_SET(STDIN, &rfds);
 
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
+    tv.tv_sec = TIMEOUT_SEC;
+    tv.tv_usec = TIMEOUT_USEC;
 
     char *endptr = NULL;
 
-    printf("There are %d strings.\nEnter number of line, which you want to see: ", stringsCount);
+    printf("There are %d strings.\nEnter number of line, which you want to see (You have 5 seconds): ", stringsCount);
     int status = fflush(stdout);
     if(status != STATUS_SUCCESS){
         perror("getStringNumber. TThere are problems while getting your number, exactly with fflush command");
@@ -106,7 +108,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
     if( readSymbols == STATUS_FAIL){
-        perror("There are problems while filling table, exactly with reading file");
+        perror("fillTable. There are problems while filling table, exactly with reading file");
         return STATUS_FAIL;
     }
 

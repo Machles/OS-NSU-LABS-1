@@ -24,6 +24,7 @@ Node* createNode(char* string){
 
     node->next = NULL;
     node->stringValue = newStr;
+    newStr[strLength] = '\0';
 
     return node;
 }
@@ -70,7 +71,7 @@ void printList(List* list){
 
     Node * current = list->head;
 
-    while(current != NULL){
+    while(current != NULL) {
         printf("%s\n", current->stringValue);
         current = current->next;
     }

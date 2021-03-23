@@ -5,6 +5,8 @@
 
 #define INPUT_HOLDER_SIZE 1024
 
+extern int errno;
+
 int main() {
     char stopSymbol = '.';
     int currentStringLength = 0;
@@ -51,8 +53,9 @@ int main() {
         readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
     }
 
-    if(readingResult == NULL){
+    if(readingResult == NULL && errno !=0){
         perror("There is troubles with reading from stream");
+        exit(EXIT_FAILURE);
     }
 
     printList(list);
