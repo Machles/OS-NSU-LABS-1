@@ -32,7 +32,7 @@ int printAllFile(int fileDescriptorIn){
         return STATUS_FAIL;
     }
 
-    printf("\n");
+
     do {
         readSymbols = read(fileDescriptorIn, stringHolder, MAX_STRING_LENGTH);
         if(readSymbols == STATUS_FAIL){
@@ -64,15 +64,15 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     char *endptr = NULL;
 
     printf("There are %d strings.\nEnter number of line, which you want to see (You have 5 seconds): ", stringsCount);
-    int status = fflush(stdout);
+    int status = fflush(STDOUT);
     if(status != STATUS_SUCCESS){
-        perror("getStringNumber. TThere are problems while getting your number, exactly with fflush command");
+        perror("getStringNumber. There are problems while getting your number, exactly with fflush command");
         return STATUS_FAIL;
     }
 
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
     if(selectStatus == 0){
-        fprintf(stderr, "getStringNumber. TTime is over! Try again.\n");
+        fprintf(stderr, "getStringNumber. Time is over! Try again.\n");
         printAllFile(fileDescriptorIn);
         return STATUS_TIMEOUT;
     }
@@ -185,7 +185,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
 
 int main(int argc, char* argv[]){
 
-    int fileDescriptorIn = 0;
+    int fileDescriptorIn;
 
     long offsetsFileTable[256];
     long stringsLengthsFileTable[256];

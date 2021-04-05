@@ -12,7 +12,7 @@ extern int errno;
 int main() {
     char stopSymbol = '.';
     unsigned long currentStringLength = 0;
-    unsigned long currentBufferSize = 0;
+    unsigned long currentBufferSize;
     char* readingResult = NULL;
     char* inputHolder = NULL;
     char buffer[BUFFER_SIZE];
