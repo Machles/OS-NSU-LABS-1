@@ -72,7 +72,7 @@ void printList(List* list){
     Node * current = list->head;
 
     while(current != NULL) {
-        printf("%s\n", current->stringValue);
+        printf("%s", current->stringValue);
         current = current->next;
     }
 

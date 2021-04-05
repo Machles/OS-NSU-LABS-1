@@ -4,18 +4,18 @@
 #include <errno.h>
 
 #define INPUT_HOLDER_SIZE 1024
+#define BUFFER_SIZE 10
+#define TRUE 1
 
 extern int errno;
 
 int main() {
     char stopSymbol = '.';
-    int currentStringLength = 0;
-
-    char* inputHolder = (char*) malloc(INPUT_HOLDER_SIZE + 1);
-    if(inputHolder == NULL){
-        perror("There is a trouble with allocating memory with malloc for inputHolder");
-        exit(EXIT_FAILURE);
-    }
+    unsigned long currentStringLength = 0;
+    unsigned long currentBufferSize = 0;
+    char* readingResult = NULL;
+    char* inputHolder = NULL;
+    char buffer[BUFFER_SIZE];
 
     List* list = (List*) malloc(sizeof(List));
     if(list == NULL){
@@ -25,17 +25,38 @@ int main() {
 
     initList(list);
 
-    char * readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
+    do {
+        readingResult = fgets(buffer, BUFFER_SIZE, stdin);
+        if(readingResult == NULL){
+            break;
+        }
 
-    while (readingResult != NULL){
-        currentStringLength = ( (int) strlen(inputHolder) ) - 1;
-        inputHolder[currentStringLength] = '\0'; /* Избавились от \n, заменив на \0 */
+        currentBufferSize = strlen(buffer);
+
+        if(currentBufferSize < 0){
+            fprintf(stderr,"There is a problem with getting string length");
+            exit(EXIT_FAILURE);
+        }
+
+        char * tempHolder = realloc(inputHolder, currentStringLength+currentBufferSize+1);
+        if(tempHolder == NULL){
+            perror("There is a trouble with reallocating memory with realloc");
+            exit(EXIT_FAILURE);
+        }
+        inputHolder = tempHolder;
+
+        strcpy(inputHolder+currentStringLength, buffer);
+        currentStringLength += currentBufferSize;
+
+        if(buffer[currentBufferSize-1] != '\n'){
+            continue;
+        }
 
         if(inputHolder[0] == stopSymbol){
             break;
         }
 
-        /// Ошибки из createNode никак не обрабатываются
+        /// Ошибки из createNode никак не обрабатываются - теперь отбработчик снизу
         Node * node = createNode(inputHolder);
 
         if(node == NULL){
@@ -50,10 +71,11 @@ int main() {
             exit(EXIT_FAILURE);
         }
 
-        readingResult = fgets(inputHolder, INPUT_HOLDER_SIZE, stdin);
-    }
+        currentStringLength = 0;
 
-    if(readingResult == NULL && errno !=0){
+    } while(TRUE);
+
+    if (readingResult == NULL && errno !=0){
         perror("There is troubles with reading from stream");
         exit(EXIT_FAILURE);
     }
