@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <argp.h>
 
 #define INPUT_HOLDER_SIZE 512
 
@@ -46,7 +47,7 @@ long getStringNumber(int stringsCount){
         return STATUS_FAIL;
     }
 
-    if(numberHolder == endptr){
+    if(numberHolder == endptr || !isspace(endptr) ){
         return STATUS_NO_NUMCONV;
     }
 
