@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
 
 #define INPUT_HOLDER_SIZE 512
 
@@ -16,8 +17,8 @@
 #define TIMEOUT_USEC 0
 #define STDIN 0
 #define STDOUT 1
-#define MAX_FILEDESC_NUMBER 1
-#define TRUE 1
+#define STOPNUMBER 0
+#define NOTSTOPNUMBER 1
 
 extern int errno;
 
@@ -64,7 +65,7 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     char *endptr = NULL;
 
     printf("There are %d strings.\nEnter number of line, which you want to see (You have 5 seconds): ", stringsCount);
-    int status = fflush(STDOUT);
+    int status = fflush(stdout);
     if(status != STATUS_SUCCESS){
         perror("getStringNumber. There are problems while getting your number, exactly with fflush command");
         return STATUS_FAIL;
@@ -86,12 +87,12 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber == -1){
-        fprintf(stderr, "getStringNumber. There are problems while getting your number, exactly with converting string to long.\n");
+    if( (stringNumber == LLONG_MAX || stringNumber == LLONG_MIN) && errno == ERANGE){
+        perror("getStringNumber. There are problems while getting your number, exactly with converting string to long");
         return STATUS_FAIL;
     }
 
-    if(numberHolder == endptr){
+    if(numberHolder == endptr || *endptr != '\n'){
         return STATUS_NO_NUMCONV;
     }
 
@@ -137,7 +138,6 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount) {
     long currentBufferSize = INPUT_HOLDER_SIZE;
-    long stopNumber = 0;
     int readSymbols;
     int status;
     long stringNumber;
@@ -177,7 +177,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         write(STDOUT, stringHolder, currentBufferSize - 1);
         printf("\n");
 
-    } while (TRUE);
+    } while (NOTSTOPNUMBER);
 
     printf("Stop number!\n");
     return STATUS_SUCCESS;
