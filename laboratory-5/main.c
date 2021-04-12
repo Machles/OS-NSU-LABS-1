@@ -3,7 +3,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <argp.h>
+#include <limits.h>
+#include <ctype.h>
 
 #define INPUT_HOLDER_SIZE 512
 
@@ -14,7 +15,8 @@
 #define OWNER_READ_WRITE 0600
 #define STDIN 0
 #define STDOUT 1
-#define TRUE 1
+#define STOPNUMBER 0
+#define NOTSTOPNUMBER 1
 
 extern int errno;
 
@@ -42,12 +44,12 @@ long getStringNumber(int stringsCount){
     }
 
     long stringNumber = strtol(numberHolder, &endptr, 10);
-    if(stringNumber == -1){
-        fprintf(stderr, "getStringNumber. There are problems while getting your number, exactly with converting string to long.\n");
+    if( (stringNumber == LLONG_MAX || stringNumber == LLONG_MIN) && errno == ERANGE){
+        perror("getStringNumber. There are problems while getting your number, exactly with converting string to long");
         return STATUS_FAIL;
     }
 
-    if(numberHolder == endptr || !isspace(endptr) ){
+    if(numberHolder == endptr || *endptr != '\n'){
         return STATUS_NO_NUMCONV;
     }
 
@@ -94,7 +96,6 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 /// Поменял
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
-    long stopNumber = 0;
     int readSymbols;
     int status;
     long stringNumber;
@@ -114,7 +115,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             continue;
         }
 
-        if (stringNumber == 0) {
+        if (stringNumber == STOPNUMBER) {
             break;
         }
 
@@ -143,7 +144,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         write(STDOUT, stringHolder, currentBufferSize - 1);
         printf("\n");
 
-    } while (TRUE);
+    } while (NOTSTOPNUMBER);
 
     printf("Stop number!\n");
 
