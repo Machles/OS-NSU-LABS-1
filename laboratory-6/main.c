@@ -18,6 +18,7 @@
 #define STDIN 0
 #define STDOUT 1
 #define STOPNUMBER 0
+#define MAX_FILEDESC_NUMBER 1
 #define NOTSTOPNUMBER 1
 
 extern int errno;
