@@ -38,12 +38,12 @@ int printAllFile(int fileDescriptorIn){
     do {
         readSymbols = read(fileDescriptorIn, stringHolder, MAX_STRING_LENGTH);
         if(readSymbols == STATUS_FAIL){
-            perror("printAllFile. Problems with reading file.");
+            perror("printAllFile. Problems with reading file");
             return STATUS_FAIL;
         }
         writeSymbols = write(STDOUT, stringHolder, readSymbols);
         if(writeSymbols == STATUS_FAIL){
-            perror("printAllFile. Problems with writing data in file.");
+            perror("printAllFile. Problems with writing data in file");
             return STATUS_FAIL;
         }
     } while(readSymbols != 0);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]){
 
     fileDescriptorIn = open(argv[1], O_RDONLY, OWNER_READ_WRITE);
     if(fileDescriptorIn == STATUS_FAIL){
-        perror("There are problems while reading file.");
+        perror("There are problems while reading file");
         exit(EXIT_FAILURE);
     }
 
