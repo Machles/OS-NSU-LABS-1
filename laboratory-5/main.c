@@ -22,7 +22,7 @@ extern int errno;
 
 /// Объясните почему нельзя использовать scanf?
 /* strtol будет лучше и понятнее себя вести, когда на вход попадет строка, содержащая очень больше число,
- * если число окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт -1 и установит errno ERANGE.
+ * если число окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт LONG_MAX или LONG_MIN и установит errno ERANGE.
  * В свою очередь, scanf даже не уведомит о том, что что-то не так
  */
 long getStringNumber(int stringsCount){
