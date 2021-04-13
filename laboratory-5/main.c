@@ -192,6 +192,10 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    close(fileDescriptorIn);
+    int closeStatus = close(fileDescriptorIn);
+    if(closeStatus == STATUS_FAIL){
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
