@@ -82,7 +82,7 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
 
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
     if(selectStatus == 0){
-        fprintf(stderr, "getStringNumber. Time is over! Try again.\n");
+        fprintf(stderr, "getStringNumber. Time is over!\n");
         printAllFile(fileDescriptorIn);
         return STATUS_TIMEOUT;
     }
