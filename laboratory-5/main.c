@@ -20,6 +20,15 @@
 
 extern int errno;
 
+int lastWorkWithData(int fileDescriptorIn){
+    int closeStatus = close(fileDescriptorIn);
+    if(closeStatus == STATUS_FAIL){
+        perror("There are also problems with closing file");
+        return STATUS_FAIL;
+    }
+    return STATUS_SUCCESS;
+}
+
 /// Объясните почему нельзя использовать scanf?
 /* strtol будет лучше и понятнее себя вести, когда на вход попадет строка, содержащая очень больше число,
  * если число окажется больше LONG_MAX или меньше LONG_MIN - strtol вернёт LONG_MAX или LONG_MIN и установит errno ERANGE.
@@ -97,8 +106,9 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount){
     long currentBufferSize = INPUT_HOLDER_SIZE;
     int readSymbols;
-    int status;
+    int lseekStatus;
     long stringNumber;
+    int writeStatus;
 
     /// избегайте слова "flag" в переменных, в большинстве случаев это бессмысленный суффикс
     /// подумайте, каков общий смысл, до каких пор выполняется обработка строк? соответственно дайте название предикату
@@ -121,8 +131,8 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
 
         /// В описании вы указали, что lseek может возвращать ошибки (какие?) - но обработчика ошибок нет
         /// Теперь есть, ниже указаны ошибки.
-        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
-        if (status == STATUS_FAIL) {
+        lseekStatus = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
+        if (lseekStatus == STATUS_FAIL) {
             /// Какие ошибки может вернуть lseek?
             /// EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
             perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");
@@ -141,7 +151,10 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             return STATUS_FAIL;
         }
 
-        write(STDOUT, stringHolder, currentBufferSize - 1);
+        writeStatus = write(STDOUT, stringHolder, currentBufferSize - 1);
+        if(writeStatus == STATUS_FAIL){
+            perror("printStringByNumber. There are problems with writing data");
+        }
         printf("\n");
 
     } while (NOTSTOPNUMBER);
@@ -183,17 +196,19 @@ int main(int argc, char* argv[]){
     if(stringsCount == STATUS_FAIL){
         /// Количество элементов принято обозначать словом "count". Amount - это скорее "сумма", про валюту
         /// Исправил
+        lastWorkWithData(fileDescriptorIn);
         return EXIT_FAILURE;
     }
 
     status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
 
     if(status == STATUS_FAIL) {
+        lastWorkWithData(fileDescriptorIn);
         return EXIT_FAILURE;
     }
 
-    int closeStatus = close(fileDescriptorIn);
-    if(closeStatus == STATUS_FAIL){
+    status = lastWorkWithData(fileDescriptorIn);
+    if(status == STATUS_FAIL) {
         return EXIT_FAILURE;
     }
 

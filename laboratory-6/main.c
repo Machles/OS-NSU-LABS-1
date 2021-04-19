@@ -23,6 +23,15 @@
 
 extern int errno;
 
+int lastWorkWithData(int fileDescriptorIn){
+    int closeStatus = close(fileDescriptorIn);
+    if(closeStatus == STATUS_FAIL){
+        perror("There are also problems with closing file");
+        return STATUS_FAIL;
+    }
+    return STATUS_SUCCESS;
+}
+
 int printAllFile(int fileDescriptorIn){
     char stringHolder[MAX_STRING_LENGTH];
     int readSymbols;
@@ -33,7 +42,6 @@ int printAllFile(int fileDescriptorIn){
         perror("printAllFile. There are problems while printing string by number, exactly with setting position in file");
         return STATUS_FAIL;
     }
-
 
     do {
         readSymbols = read(fileDescriptorIn, stringHolder, MAX_STRING_LENGTH);
@@ -140,8 +148,9 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount) {
     long currentBufferSize = INPUT_HOLDER_SIZE;
     int readSymbols;
-    int status;
+    int lseekStatus;
     long stringNumber;
+    int writeStatus;
 
     do {
         stringNumber = getStringNumber(stringsCount, fileDescriptorIn);
@@ -150,7 +159,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             if (stringNumber == STATUS_FAIL) {
                 return STATUS_FAIL;
             } else if (stringNumber == STATUS_TIMEOUT) {
-                continue;
+                return STATUS_SUCCESS;
             }
             fprintf(stderr, "printStringByNumber. Invalid string number! Try again.\n");
             continue;
@@ -160,8 +169,8 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             break;
         }
 
-        status = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
-        if (status == STATUS_FAIL) {
+        lseekStatus = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
+        if (lseekStatus == STATUS_FAIL) {
             perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");
             return STATUS_FAIL;
         }
@@ -175,7 +184,10 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
             return STATUS_FAIL;
         }
 
-        write(STDOUT, stringHolder, currentBufferSize - 1);
+        writeStatus = write(STDOUT, stringHolder, currentBufferSize - 1);
+        if(writeStatus == STATUS_FAIL){
+            perror("printStringByNumber. There are problems with writing data");
+        }
         printf("\n");
 
     } while (NOTSTOPNUMBER);
@@ -205,16 +217,18 @@ int main(int argc, char* argv[]){
 
     int stringsCount = fillTable(offsetsFileTable, stringsLengthsFileTable, fileDescriptorIn);
     if(stringsCount == STATUS_FAIL){
+        lastWorkWithData(fileDescriptorIn);
         return EXIT_FAILURE;
     }
 
     status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
     if(status == STATUS_FAIL) {
+        lastWorkWithData(fileDescriptorIn);
         return EXIT_FAILURE;
     }
 
-    int closeStatus = close(fileDescriptorIn);
-    if(closeStatus == STATUS_FAIL){
+    status = lastWorkWithData(fileDescriptorIn);
+    if(status == STATUS_FAIL){
         return EXIT_FAILURE;
     }
 
