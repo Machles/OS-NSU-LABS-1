@@ -154,6 +154,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         writeStatus = write(STDOUT, stringHolder, currentBufferSize - 1);
         if(writeStatus == STATUS_FAIL){
             perror("printStringByNumber. There are problems with writing data");
+            return STATUS_FAIL;
         }
         printf("\n");
 
