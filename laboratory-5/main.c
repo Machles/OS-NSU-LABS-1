@@ -72,6 +72,8 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     size_t indexInInputHolder = 0;
     size_t currentStringLength = 0;
     size_t indexInTable = 0;
+    int currentPosition = 0;
+
     int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
     if( readSymbols == STATUS_FAIL){
@@ -84,12 +86,13 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             currentStringLength++;
             if(inputHolder[indexInInputHolder] == '\n'){
 
-                offsetsFileTable[indexInTable] = indexInInputHolder + 1 - currentStringLength;
+                offsetsFileTable[indexInTable] = currentPosition + 1 - currentStringLength;
                 stringsLengthsFileTable[indexInTable++] = currentStringLength;
 
                 currentStringLength = 0;
             }
             indexInInputHolder++;
+            currentPosition++;
         }
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
         indexInInputHolder = 0;
