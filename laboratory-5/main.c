@@ -10,6 +10,7 @@
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
+#define STATUS_FAIL_LSEEK (off_t)-1
 #define STATUS_NO_NUMCONV -3
 #define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
@@ -136,7 +137,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         /// В описании вы указали, что lseek может возвращать ошибки (какие?) - но обработчика ошибок нет
         /// Теперь есть, ниже указаны ошибки.
         lseekStatus = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
-        if (lseekStatus == STATUS_FAIL) {
+        if (lseekStatus == STATUS_FAIL_LSEEK) {
             /// Какие ошибки может вернуть lseek?
             /// EBADF, ESPIPE, EINVAL, EOVERFLOW, ENXIO - Ошибки lseek
             perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");

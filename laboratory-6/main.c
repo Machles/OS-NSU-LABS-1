@@ -9,6 +9,7 @@
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
+#define STATUS_FAIL_LSEEK (off_t)-1
 #define STATUS_TIMEOUT -2
 #define STATUS_NO_NUMCONV -3
 #define MAX_STRING_LENGTH 1000
@@ -32,13 +33,14 @@ int lastWorkWithData(int fileDescriptorIn){
     return STATUS_SUCCESS;
 }
 
+// Функция, печающая весь файл (нововведение)
 int printAllFile(int fileDescriptorIn){
     char stringHolder[MAX_STRING_LENGTH];
     int readSymbols;
     int writeSymbols;
 
     int status = lseek(fileDescriptorIn, 0, SEEK_SET);
-    if(status == STATUS_FAIL){
+    if(status == STATUS_FAIL_LSEEK) {
         perror("printAllFile. There are problems while printing string by number, exactly with setting position in file");
         return STATUS_FAIL;
     }
@@ -65,9 +67,13 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     struct timeval tv;
     int selectStatus;
 
+    // Сбрасываем биты для множества файловых дескрипторов, которые нужны для чтения (нововведение)
     FD_ZERO(&rfds);
+
+    // Устанавливаем бит для стандартного потока ввода во множестве файловых дескрипторов, которые нужны для чтения (нововведение)
     FD_SET(STDIN, &rfds);
 
+    // Устанавливаем допустимое время ожидания изменения статуса наборов дескрипторов (нововведение)
     tv.tv_sec = TIMEOUT_SEC;
     tv.tv_usec = TIMEOUT_USEC;
 
@@ -80,6 +86,7 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
         return STATUS_FAIL;
     }
 
+    // Используем функцию select, для того, чтобы отслеживать статус указанных дескрипторов для чтения
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
     if(selectStatus == 0){
         fprintf(stderr, "getStringNumber. Time is over!\n");
@@ -156,12 +163,14 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
     int writeStatus;
 
     do {
+        // Получаем число строки, которую хочет видеть пользователь
         stringNumber = getStringNumber(stringsCount, fileDescriptorIn);
 
         if (stringNumber < 0 || stringNumber > stringsCount) {
             if (stringNumber == STATUS_FAIL) {
                 return STATUS_FAIL;
             } else if (stringNumber == STATUS_TIMEOUT) {
+                // Если время вышло, то завершаем печать строк по их номеру
                 return STATUS_SUCCESS;
             }
             fprintf(stderr, "printStringByNumber. Invalid string number! Try again.\n");
@@ -173,7 +182,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         }
 
         lseekStatus = lseek(fileDescriptorIn, offsetFileTable[stringNumber - 1], SEEK_SET);
-        if (lseekStatus == STATUS_FAIL) {
+        if (lseekStatus == STATUS_FAIL_LSEEK) {
             perror("printStringByNumber. There are problems while printing string by number, exactly with setting position in file");
             return STATUS_FAIL;
         }
