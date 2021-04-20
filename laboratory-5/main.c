@@ -92,6 +92,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             indexInInputHolder++;
         }
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
+        indexInInputHolder = 0;
         if( readSymbols == STATUS_FAIL){
             perror("fillTable. There are problems while filling table, exactly with reading file");
             return STATUS_FAIL;
