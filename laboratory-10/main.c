@@ -11,6 +11,7 @@
 #define REQUIRED_ARGS_NUM 2
 #define CHILD_RETURN_CODE 0
 #define PROG_NAME_IDX 1
+#define PROG_ARGS_START_IDX 1
 
 int executeProgramm(char* argv[], char* programName){
     pid_t statusFork = fork();
@@ -52,16 +53,15 @@ int waitForChildProcess(){
 
 int main(int argc, char **argv){
 
-    if (argc != REQUIRED_ARGS_NUM) {
-        fprintf(stderr, "Not enough arguments entered.\nusage: progname input_file\n");
+    if (argc < REQUIRED_ARGS_NUM) {
+        fprintf(stderr, "Not enough arguments entered.\nusage: progname <arg1> <arg2> ... <argN>\n");
         exit(EXIT_FAILURE);
     }
 
-    char programName[] = "cat";
-    char* fileName = argv[PROG_NAME_IDX];
-    char* commandArgv[] = {programName, fileName, NULL};
+    char* programName = argv[PROG_NAME_IDX];
+    char** programArguments = &argv[PROG_ARGS_START_IDX];
 
-    int returnStatus = executeProgramm(argv, programName);
+    int returnStatus = executeProgramm(programArguments, programName);
     if(returnStatus == STATUS_FAIL){
         fprintf(stderr,"There problems with executing program 'progName'");
         exit(EXIT_FAILURE);
