@@ -19,10 +19,12 @@ int executeProgramm(char* argv[], char* programName){
     }
     if(statusFork == CHILD_RETURN_CODE){
         int execStatus = execvp(programName, argv);
-        if(execStatus != STATUS_FAIL){
+        if(execStatus == STATUS_FAIL){
             perror("executeProgram. There are problems with execpv");
             return STATUS_FAIL;
         }
+    } else {
+        sleep(1);
     }
 
     return STATUS_SUCCESS;
@@ -36,12 +38,12 @@ int waitForChildProcess(){
         return STATUS_FAIL;
     }
 
-    if(WIFSIGNALED(statusWait)){
-        int exitStatus = WEXITSTATUS(statusWait);
-        printf("\nChild process exited with status: %d", statusWait);
-    } else if(WIFEXITED(statusWait)){
-        int signalInfo = WTERMSIG(statusWait);
-        printf("\nChild process terminated with a signal: %d", signalInfo);
+    if(WIFSIGNALED(statloc)){
+        int signalInfo = WTERMSIG(statloc);
+        printf("\nChild process terminated with a signal: %d\n", signalInfo);
+    } else if(WIFEXITED(statloc)){
+        int exitStatus = WEXITSTATUS(statloc);
+        printf("\nChild process exited with status: %d\n", exitStatus);
     }
 
     return STATUS_SUCCESS;
@@ -57,8 +59,8 @@ int main(int argc, char **argv){
     char programName[] = "cat";
 
     char* programPath = argv[0];
-    char* filename = argv[1];
-    char* commandArgv[] = {programName, filename, NULL};
+    char* fileName = argv[1];
+    char* commandArgv[] = {programName, fileName, NULL};
 
     int returnStatus = executeProgramm(argv, programName);
     if(returnStatus == STATUS_FAIL){
