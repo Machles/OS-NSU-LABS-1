@@ -12,6 +12,7 @@
 #define CHILD_RETURN_CODE 0
 #define PROG_NAME_IDX 1
 #define PROG_ARGS_START_IDX 1
+#define SLEEP_TIME 1
 
 int executeProgramm(char* argv[], char* programName){
     pid_t statusFork = fork();
@@ -28,7 +29,7 @@ int executeProgramm(char* argv[], char* programName){
             return STATUS_FAIL;
         }
     } else {
-        sleep(1);
+        sleep(SLEEP_TIME);
     }
 
     return STATUS_SUCCESS;
