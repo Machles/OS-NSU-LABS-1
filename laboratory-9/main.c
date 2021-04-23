@@ -6,7 +6,7 @@
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAIL -1
-#define FORK_ERROR -1
+#define FORK_ERROR (pid_t)-1
 #define WAIT_ERROR -1
 #define REQUIRED_ARGS_NUM 2
 #define CHILD_RETURN_CODE 0
@@ -14,10 +14,12 @@
 
 int executeProgramm(char* argv[], char* programName){
     pid_t statusFork = fork();
+
     if(statusFork == FORK_ERROR){
         perror("executeProgramm. There are problems with fork");
         return STATUS_FAIL;
     }
+
     if(statusFork == CHILD_RETURN_CODE){
         int execStatus = execvp(programName, argv);
         if(execStatus == STATUS_FAIL){
@@ -34,6 +36,7 @@ int executeProgramm(char* argv[], char* programName){
 int waitForChildProcess(){
     int currentStatus = 0;
     pid_t statusWait = wait(&currentStatus);
+
     if(statusWait == WAIT_ERROR){
         perror("waitForChildProcess. There are problems with wait");
         return STATUS_FAIL;
@@ -67,13 +70,13 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-//    printf("Check text.");
+    printf("Check text.");
 
-    returnStatus = waitForChildProcess();
-    if(returnStatus == STATUS_FAIL){
-        fprintf(stderr,"There problems with waiting child process");
-        exit(EXIT_FAILURE);
-    }
+//    returnStatus = waitForChildProcess();
+//    if(returnStatus == STATUS_FAIL){
+//        fprintf(stderr,"There problems with waiting child process");
+//        exit(EXIT_FAILURE);
+//    }
 
     return EXIT_SUCCESS;
 }
