@@ -13,20 +13,18 @@
 #define PROG_NAME_IDX 1
 #define SLEEP_TIME 1
 
-int executeProgramm(char* argv[], char* programName){
+int executeCommand(char* argv[], char* commandName){
     pid_t statusFork = fork();
 
     if(statusFork == FORK_ERROR){
-        perror("executeProgramm. There are problems with fork");
+        perror("executeCommand. There are problems with fork");
         return STATUS_FAIL;
     }
 
     if(statusFork == CHILD_RETURN_CODE){
-        int execStatus = execvp(programName, argv);
-        if(execStatus == STATUS_FAIL){
-            perror("executeProgram. There are problems with execpv");
-            return STATUS_FAIL;
-        }
+        execvp(commandName, argv);
+        perror("executeCommand. There are problems with execpv");
+        return STATUS_FAIL;
     } else {
         sleep(SLEEP_TIME);
     }
@@ -43,6 +41,8 @@ int waitForChildProcess(){
         return STATUS_FAIL;
     }
 
+    // В этом месте выводится информация родительским процессом о статусе завершения дочернего процесса
+    // т.е. в данном случае родительский процесс выводит последнюю свою строку после завершения работы дочернего процесса.
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
         printf("\nChild process terminated with a signal: %d\n", signalInfo);
@@ -61,18 +61,22 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-    char programName[] = "cat";
+    // Здесь я явно задаю название команды, которую хочу запустить
+    char commandName[] = "cat";
     char* fileName = argv[PROG_NAME_IDX];
-    char* commandArgv[] = {programName, fileName, NULL};
+    // Создаю на основе предудущих данных новый массив аргументов
+    char* commandArgv[] = {commandName, fileName, NULL};
 
-    int returnStatus = executeProgramm(argv, programName);
+    int returnStatus = executeCommand(argv, commandName);
     if(returnStatus == STATUS_FAIL){
         fprintf(stderr,"There problems with executing program 'progName'");
         exit(EXIT_FAILURE);
     }
 
+    // Первый вариант программы - "Родитель должен вызвать printf(3) и распечатать какой-либо текст."
     printf("Check text.");
 
+    // Второй вариант программы - модифицированный - "Последняя строка, распечатанная родителем, выводилась после завершения порожденного процесса."
 //    returnStatus = waitForChildProcess();
 //    if(returnStatus == STATUS_FAIL){
 //        fprintf(stderr,"There problems with waiting child process");

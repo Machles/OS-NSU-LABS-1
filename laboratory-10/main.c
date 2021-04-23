@@ -14,20 +14,20 @@
 #define PROG_ARGS_START_IDX 1
 #define SLEEP_TIME 1
 
-int executeProgramm(char* argv[], char* programName){
+// В комменатриях я процитировал требования из задания
+
+int executeCommand(char* argv[], char* commandName){
     pid_t statusFork = fork();
 
     if(statusFork == FORK_ERROR){
-        perror("executeProgramm. There are problems with fork");
+        perror("executeCommand. There are problems with fork");
         return STATUS_FAIL;
     }
 
     if(statusFork == CHILD_RETURN_CODE){
-        int execStatus = execvp(programName, argv);
-        if(execStatus == STATUS_FAIL){
-            perror("executeProgram. There are problems with execpv");
-            return STATUS_FAIL;
-        }
+        execvp(commandName, argv);
+        perror("executeCommand. There are problems with execpv");
+        return STATUS_FAIL;
     } else {
         sleep(SLEEP_TIME);
     }
@@ -37,6 +37,7 @@ int executeProgramm(char* argv[], char* programName){
 
 int waitForChildProcess(){
     int currentStatus = 0;
+    // "Затем программа должна дождаться завершения порожденного процесса..."
     pid_t statusWait = wait(&currentStatus);
 
     if(statusWait == WAIT_ERROR){
@@ -44,6 +45,7 @@ int waitForChildProcess(){
         return STATUS_FAIL;
     }
 
+    // "... и распечатать его код завершения."
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
         printf("\nChild process terminated with a signal: %d\n", signalInfo);
@@ -58,20 +60,21 @@ int waitForChildProcess(){
 int main(int argc, char **argv){
 
     if (argc < MIN_ARGS_NUM) {
-        fprintf(stderr, "Not enough arguments entered.\nusage: progname <arg1> <arg2> ... <argN>\n");
+        fprintf(stderr, "Not enough arguments entered.\nusage: progname commandName <arg1> <arg2> ... <argN>\n");
         exit(EXIT_FAILURE);
     }
 
-    char* programName = argv[PROG_NAME_IDX];
-    char** programArguments = &argv[PROG_ARGS_START_IDX];
+    // Имя команды, которую хочет запустить пользователь - в прошлой лабораторной имя команды было всегда одно и то же - cat
+    char* commandName = argv[PROG_NAME_IDX];
 
-    int returnStatus = executeProgramm(programArguments, programName);
+    // Аргументы этой команды
+    char** commandArguments = &argv[PROG_ARGS_START_IDX];
+
+    int returnStatus = executeCommand(commandArguments, commandName);
     if(returnStatus == STATUS_FAIL){
-        fprintf(stderr,"There problems with executing program 'progName'");
+        fprintf(stderr,"There problems with executing command 'commandName'");
         exit(EXIT_FAILURE);
     }
-
-//    printf("Check text.");
 
     returnStatus = waitForChildProcess();
     if(returnStatus == STATUS_FAIL){
