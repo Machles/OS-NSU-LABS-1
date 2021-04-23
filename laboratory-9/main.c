@@ -69,7 +69,7 @@ int main(int argc, char **argv){
 
     int returnStatus = executeCommand(argv, commandName);
     if(returnStatus == STATUS_FAIL){
-        fprintf(stderr,"There problems with executing program 'progName'");
+        fprintf(stderr,"There problems with executing command 'commandName'");
         exit(EXIT_FAILURE);
     }
 
