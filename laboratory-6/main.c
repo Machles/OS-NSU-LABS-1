@@ -22,6 +22,8 @@
 #define MAX_FILEDESC_NUMBER 1
 #define NOTSTOPNUMBER 1
 
+// ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
+
 extern int errno;
 
 int lastWorkWithData(int fileDescriptorIn){
