@@ -8,6 +8,7 @@
 #define STATUS_FAIL -1
 #define FORK_ERROR (pid_t)-1
 #define WAIT_ERROR -1
+#define EXECPV_ERROR -1
 #define REQUIRED_ARGS_NUM 2
 #define CHILD_RETURN_CODE 0
 #define PROG_NAME_IDX 1
@@ -22,8 +23,9 @@ int executeCommand(char* argv[], char* commandName){
     }
 
     if(statusFork == CHILD_RETURN_CODE){
-        execvp(commandName, argv);
-        perror("executeCommand. There are problems with execpv");
+        int execpvStatus = execvp(commandName, argv);
+        if(execpvStatus == EXECPV_ERROR)
+            perror("executeCommand. There are problems with execpv");
         return STATUS_FAIL;
     } else {
         sleep(SLEEP_TIME);
