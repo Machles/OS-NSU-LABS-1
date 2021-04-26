@@ -107,6 +107,13 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
 
     char numberHolder[INPUT_HOLDER_SIZE];
 
+    /// Формально вы должны проверить готов ли дескриптор для чтения через FD_ISSET, чтобы не заблокироваться на read /// Проверил.
+    int fdStatus = FD_ISSET(STDIN, &rfds);
+    if(fdStatus == 0){
+        fprintf(stderr, "There are problems with STDIN, it isn't available.");
+        return STATUS_FAIL;
+    }
+
     /// Здесь на самом деле вы не знаете с ошибкой завершился select или нет - не проверяете /// Проверил.
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
     if(readSymbols == STATUS_FAIL){
@@ -153,8 +160,8 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             currentStringLength++;
             if(inputHolder[indexInInputHolder] == '\n'){
 
-                /// Увеличил размеры таблицы
-                /// Если количество строк больше TABLE_SIZE, то программа завершается.
+                /// Увеличил размеры таблицы теперь TABLE_SIZE не 256, а 4096.
+                /// Если количество строк больше TABLE_SIZE, то программа завершается с указанием на то, что максиммальный размер таблицы превышен.
                 if(indexInTable >= TABLE_SIZE){
                     fprintf(stderr, "Strings count is bigger than max table size (4096)");
                     return STATUS_FAIL;
