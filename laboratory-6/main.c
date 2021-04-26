@@ -165,7 +165,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
                 offsetsFileTable[indexInTable] = currentPosition + 1 - currentStringLength;
 
                 /// Что если строка в файле окажется длиннее 256?
-                /// ничего, её длина запишится в currentStringLength
+                /// Её длина запишится в currentStringLength
                 stringsLengthsFileTable[indexInTable++] = currentStringLength;
 
                 currentStringLength = 0;
