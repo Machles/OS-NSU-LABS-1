@@ -11,6 +11,7 @@
 #define STATUS_FAIL -1
 #define STATUS_FAIL_LSEEK (off_t)-1
 #define STATUS_TIMEOUT -2
+#define FDS_NOT_READY 0
 #define STATUS_NO_NUMCONV -3
 #define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
@@ -21,6 +22,9 @@
 #define STOPNUMBER 0
 #define MAX_FILEDESC_NUMBER 1
 #define NOTSTOPNUMBER 1
+#define DECIMAL_SCALE_OF_NOTATION 10
+#define TABLE_SIZE 4096
+#define FD_NOT_INCLUDED 0
 
 // ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
 
@@ -90,21 +94,28 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
 
     // Используем функцию select, для того, чтобы отслеживать статус указанных дескрипторов для чтения
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
-    if(selectStatus == 0){
+
+    /// Какова семантика нуля? Дайте название ему. /// Исправил.
+    if(selectStatus == FDS_NOT_READY){
         fprintf(stderr, "getStringNumber. Time is over!\n");
         printAllFile(fileDescriptorIn);
         return STATUS_TIMEOUT;
+    } else if(selectStatus == STATUS_FAIL){
+        perror("There are problems with select function");
+        return STATUS_FAIL;
     }
 
     char numberHolder[INPUT_HOLDER_SIZE];
 
+    /// Здесь на самом деле вы не знаете с ошибкой завершился select или нет - не проверяете /// Проверил.
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
     if(readSymbols == STATUS_FAIL){
         perror("getStringNumber. There are problems while getting your number, exactly with reading file");
         return STATUS_FAIL;
     }
 
-    long stringNumber = strtol(numberHolder, &endptr, 10);
+    /// 10 - magic number. Дайте название /// Исправил.
+    long stringNumber = strtol(numberHolder, &endptr, DECIMAL_SCALE_OF_NOTATION);
     if( (stringNumber == LLONG_MAX || stringNumber == LLONG_MIN) && errno == ERANGE){
         perror("getStringNumber. There are problems while getting your number, exactly with converting string to long");
         return STATUS_FAIL;
@@ -125,20 +136,36 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     size_t currentStringLength = 0;
     size_t indexInTable = 0;
     int currentPosition = 0;
+    int readSymbols;
 
-    int readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
+    /// Для каких целей у вас дублируется код с read? Переработать код так, чтобы вам не приходилось дублировать код.
+    /// Исправил
 
-    if( readSymbols == STATUS_FAIL){
-        perror("fillTable. There are problems while filling table, exactly with reading file");
-        return STATUS_FAIL;
-    }
+    do {
+        readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
 
-    while (readSymbols > 0){
+        if( readSymbols == STATUS_FAIL){
+            perror("fillTable. There are problems while filling table, exactly with reading file");
+            return STATUS_FAIL;
+        }
+
         while(indexInInputHolder < readSymbols){
             currentStringLength++;
             if(inputHolder[indexInInputHolder] == '\n'){
 
+                /// Увеличил размеры таблицы
+                /// Если количество строк больше TABLE_SIZE, то программа завершается.
+                if(indexInTable >= TABLE_SIZE){
+                    fprintf(stderr, "Strings count is bigger than max table size (4096)");
+                    return STATUS_FAIL;
+                }
+
+                /// Что если ваш файл окажется длиннее 256 строк?
+                /// см. выше
                 offsetsFileTable[indexInTable] = currentPosition + 1 - currentStringLength;
+
+                /// Что если строка в файле окажется длиннее 256?
+                /// ничего, её длина запишится в currentStringLength
                 stringsLengthsFileTable[indexInTable++] = currentStringLength;
 
                 currentStringLength = 0;
@@ -146,13 +173,10 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             indexInInputHolder++;
             currentPosition++;
         }
-        readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
+
         indexInInputHolder = 0;
-        if( readSymbols == STATUS_FAIL){
-            perror("fillTable. There are problems while filling table, exactly with reading file");
-            return STATUS_FAIL;
-        }
-    }
+
+    } while (readSymbols > 0);
 
     return indexInTable;
 }
@@ -215,8 +239,9 @@ int main(int argc, char* argv[]){
 
     int fileDescriptorIn;
 
-    long offsetsFileTable[256];
-    long stringsLengthsFileTable[256];
+    /// 256 - "magic number", дайте название, вынесите в defines
+    long offsetsFileTable[TABLE_SIZE];
+    long stringsLengthsFileTable[TABLE_SIZE];
     int status;
 
     if(argc < 2){
