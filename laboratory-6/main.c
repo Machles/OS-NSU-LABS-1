@@ -53,15 +53,18 @@ int printAllFile(int fileDescriptorIn){
 
     do {
         readSymbols = read(fileDescriptorIn, stringHolder, MAX_STRING_LENGTH);
+
         if(readSymbols == STATUS_FAIL){
             perror("printAllFile. Problems with reading file");
             return STATUS_FAIL;
         }
         writeSymbols = write(STDOUT, stringHolder, readSymbols);
+
         if(writeSymbols == STATUS_FAIL){
             perror("printAllFile. Problems with writing data in file");
             return STATUS_FAIL;
         }
+
     } while(readSymbols != 0);
     printf("\n");
 
@@ -85,9 +88,11 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
 
     char *endptr = NULL;
 
-    printf("There are %d strings.\nEnter number of line, which you want to see (You have 5 seconds): ", stringsCount);
-    int status = fflush(stdout);
-    if(status != STATUS_SUCCESS){
+    /// Исправление по комментарию с семинара.
+    printf("Enter number of line, which you want to see (You have 5 seconds): "); // Иправил, сейчас выводится 1 строка, без отладочной информации
+
+    int fflushStatus = fflush(stdout);
+    if(fflushStatus != STATUS_SUCCESS){
         perror("getStringNumber. There are problems while getting your number, exactly with fflush command");
         return STATUS_FAIL;
     }
@@ -95,33 +100,28 @@ long getStringNumber(int stringsCount, int fileDescriptorIn){
     // Используем функцию select, для того, чтобы отслеживать статус указанных дескрипторов для чтения
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
 
-    /// Какова семантика нуля? Дайте название ему. /// Исправил.
+    /// Какова семантика нуля? Дайте название ему. /// Исправил. (!)
     if(selectStatus == FDS_NOT_READY){
         fprintf(stderr, "getStringNumber. Time is over!\n");
         printAllFile(fileDescriptorIn);
         return STATUS_TIMEOUT;
-    } else if(selectStatus == STATUS_FAIL){
+    }
+
+    if(selectStatus == STATUS_FAIL){
         perror("There are problems with select function");
         return STATUS_FAIL;
     }
 
     char numberHolder[INPUT_HOLDER_SIZE];
 
-    /// Формально вы должны проверить готов ли дескриптор для чтения через FD_ISSET, чтобы не заблокироваться на read /// Проверил.
-    int fdStatus = FD_ISSET(STDIN, &rfds);
-    if(fdStatus == 0){
-        fprintf(stderr, "There are problems with STDIN, it isn't available.");
-        return STATUS_FAIL;
-    }
-
-    /// Здесь на самом деле вы не знаете с ошибкой завершился select или нет - не проверяете /// Проверил.
+    /// Здесь на самом деле вы не знаете с ошибкой завершился select или нет - не проверяете /// Проверил. (!)
     int readSymbols = read(STDIN, numberHolder, INPUT_HOLDER_SIZE);
     if(readSymbols == STATUS_FAIL){
         perror("getStringNumber. There are problems while getting your number, exactly with reading file");
         return STATUS_FAIL;
     }
 
-    /// 10 - magic number. Дайте название /// Исправил.
+    /// 10 - magic number. Дайте название /// Исправил. (!)
     long stringNumber = strtol(numberHolder, &endptr, DECIMAL_SCALE_OF_NOTATION);
     if( (stringNumber == LLONG_MAX || stringNumber == LLONG_MIN) && errno == ERANGE){
         perror("getStringNumber. There are problems while getting your number, exactly with converting string to long");
@@ -146,7 +146,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int readSymbols;
 
     /// Для каких целей у вас дублируется код с read? Переработать код так, чтобы вам не приходилось дублировать код.
-    /// Исправил
+    /// Исправил (!)
 
     do {
         readSymbols = read(fileDescriptorIn, inputHolder, INPUT_HOLDER_SIZE);
@@ -160,10 +160,11 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             currentStringLength++;
             if(inputHolder[indexInInputHolder] == '\n'){
 
-                /// Увеличил размеры таблицы теперь TABLE_SIZE не 256, а 4096.
+                /// Увеличил размеры таблицы теперь TABLE_SIZE не 256, а 4096. (!)
                 /// Если количество строк больше TABLE_SIZE, то программа завершается с указанием на то, что максиммальный размер таблицы превышен.
                 if(indexInTable >= TABLE_SIZE){
-                    fprintf(stderr, "Strings count is bigger than max table size (4096)");
+                    /// Исправление по комментарию с семинара.
+                    fprintf(stderr, "Strings count is bigger than max table size %d", TABLE_SIZE); /// Исправил, теперь при выводе указывается текущий размер таблицы, объявленный в define
                     return STATUS_FAIL;
                 }
 
@@ -173,7 +174,9 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 
                 /// Что если строка в файле окажется длиннее 256?
                 /// Её длина запишится в currentStringLength
-                stringsLengthsFileTable[indexInTable++] = currentStringLength;
+                stringsLengthsFileTable[indexInTable] = currentStringLength;
+
+                indexInTable += 1;
 
                 currentStringLength = 0;
             }
@@ -206,7 +209,10 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
                 // Если время вышло, то завершаем печать строк по их номеру
                 return STATUS_SUCCESS;
             }
-            fprintf(stderr, "printStringByNumber. Invalid string number! Try again.\n");
+
+            /// Исправление по комментарию с семинара.
+            fprintf(stderr, "printStringByNumber. Invalid string number! Available range: [1, %d]. Try again.\n", stringsCount); /// Добавил вывод допустимого интервала, чтобы пользователь понимал, какой интервал строк ему доступен.
+
             continue;
         }
 
@@ -246,7 +252,7 @@ int main(int argc, char* argv[]){
 
     int fileDescriptorIn;
 
-    /// 256 - "magic number", дайте название, вынесите в defines
+    /// 256 - "magic number", дайте название, вынесите в defines (!)
     long offsetsFileTable[TABLE_SIZE];
     long stringsLengthsFileTable[TABLE_SIZE];
     int status;
@@ -268,6 +274,7 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
+    printf("There are %d strings", stringsCount);
     status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
     if(status == STATUS_FAIL) {
         lastWorkWithData(fileDescriptorIn);
