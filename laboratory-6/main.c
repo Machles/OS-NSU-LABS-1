@@ -274,7 +274,7 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    printf("Available range: [0, %d]\n", stringsCount);
+    printf("Available range: [1, %d]\n", stringsCount);
     status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
     if(status == STATUS_FAIL) {
         lastWorkWithData(fileDescriptorIn);
