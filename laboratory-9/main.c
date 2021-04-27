@@ -64,10 +64,11 @@ int main(int argc, char **argv){
     // Здесь я явно задаю название команды, которую хочу запустить
     char commandName[] = "cat";
     char* fileName = argv[PROG_NAME_IDX];
+
     // Создаю на основе предудущих данных новый массив аргументов
     char* commandArgv[] = {commandName, fileName, NULL};
 
-    int returnStatus = executeCommand(argv, commandName);
+    int returnStatus = executeCommand(commandArgv, commandName);
     if(returnStatus == STATUS_FAIL){
         fprintf(stderr,"There problems with executing command 'commandName'");
         exit(EXIT_FAILURE);
