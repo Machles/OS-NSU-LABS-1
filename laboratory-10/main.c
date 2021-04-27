@@ -28,8 +28,6 @@ int executeCommand(char* argv[], char* commandName){
         execvp(commandName, argv);
         perror("executeCommand. There are problems with execpv");
         return STATUS_FAIL;
-    } else {
-        sleep(SLEEP_TIME);
     }
 
     return STATUS_SUCCESS;
@@ -49,6 +47,9 @@ int waitForChildProcess(){
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
         printf("\nChild process terminated with a signal: %d\n", signalInfo);
+        if(WCOREDUMP(currentStatus)){
+            printf("Also core file has been produced.");
+        }
     } else if(WIFEXITED(currentStatus)){
         int exitStatus = WEXITSTATUS(currentStatus);
         printf("\nChild process exited with status: %d\n", exitStatus);

@@ -25,8 +25,6 @@ int executeCommand(char* argv[], char* commandName){
         execvp(commandName, argv);
         perror("executeCommand. There are problems with execpv");
         return STATUS_FAIL;
-    } else {
-        sleep(SLEEP_TIME);
     }
 
     return STATUS_SUCCESS;
@@ -45,10 +43,10 @@ int waitForChildProcess(){
     // т.е. в данном случае родительский процесс выводит последнюю свою строку после завершения работы дочернего процесса.
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
-        printf("\nChild process terminated with a signal: %d\n", signalInfo);
+        printf("Child process terminated with a signal: %d\n", signalInfo);
     } else if(WIFEXITED(currentStatus)){
         int exitStatus = WEXITSTATUS(currentStatus);
-        printf("\nChild process exited with status: %d\n", exitStatus);
+        printf("Child process exited with status: %d\n", exitStatus);
     }
 
     return STATUS_SUCCESS;
@@ -75,7 +73,7 @@ int main(int argc, char **argv){
     }
 
     // Первый вариант программы - "Родитель должен вызвать printf(3) и распечатать какой-либо текст."
-    printf("Check text.");
+    printf("Check text\n");
 
     // Второй вариант программы - модифицированный - "Последняя строка, распечатанная родителем, выводилась после завершения порожденного процесса."
 //    returnStatus = waitForChildProcess();
