@@ -71,7 +71,7 @@ int printAllFile(int fileDescriptorIn){
     return STATUS_SUCCESS;
 }
 
-long getStringNumber(int stringsCount, int fileDescriptorIn){
+long getStringNumber(int fileDescriptorIn){
     fd_set rfds;
     struct timeval tv;
     int selectStatus;
@@ -200,7 +200,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
 
     do {
         // Получаем число строки, которую хочет видеть пользователь
-        stringNumber = getStringNumber(stringsCount, fileDescriptorIn);
+        stringNumber = getStringNumber(fileDescriptorIn);
 
         if (stringNumber < 0 || stringNumber > stringsCount) {
             if (stringNumber == STATUS_FAIL) {
