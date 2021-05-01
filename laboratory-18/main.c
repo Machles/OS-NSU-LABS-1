@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <libgen.h>
+#include <time.h>
+#include <string.h>
 
 #define MIN_REQUIRED_ARGS_NUM 2
 #define FLAGS_COUNT 3
@@ -11,26 +16,59 @@
 
 #define HLINK_FIELD_WIDTH 4
 #define OWNERS_FIELD_WIDTH 10
+#define FILESIZE_FIELD_WIDTH 10
+#define FILENAME_FIELD_WIDTH 10
 
-void printFilename(struct stat* statbuf){
+#define LAST_STRING_CHARACTER '\0'
 
+void printFilename(char* pathFile){
+    char * fileName = basename(pathFile);
+    printf("%*s", FILENAME_FIELD_WIDTH, fileName);
 }
 
 void printLastTimeFileModified(struct stat* statbuf){
+    time_t time = statbuf->st_mtim.tv_sec;
+    char *lastTimeFileModified = ctime(&time);
 
+    unsigned long timeLength = strlen(lastTimeFileModified);
+    lastTimeFileModified[timeLength-1] = LAST_STRING_CHARACTER;
+
+    printf("%s ", lastTimeFileModified);
 }
 
 void printRegularFileSize(struct stat* statbuf){
-
+    mode_t mode = statbuf->st_mode;
+    if(S_ISREG(mode)){
+        off_t fileSize = statbuf->st_size;
+        printf("%*ld ", FILESIZE_FIELD_WIDTH, fileSize);
+    } else {
+        printf("%*s ", FILESIZE_FIELD_WIDTH, " ");
+    }
 }
 
 void printOwners(struct stat* statbuf){
+    uid_t uid = statbuf->st_uid;
+    struct passwd * pw = getpwuid(uid);
 
+    gid_t gid = statbuf->st_gid;
+    struct group * grp = getgrgid(gid);
+
+    if(pw != NULL){
+        printf("%*s ", OWNERS_FIELD_WIDTH, pw->pw_name);
+    } else {
+        printf("%*d ", OWNERS_FIELD_WIDTH, uid);
+    }
+
+    if(grp != NULL){
+        printf("%*s ", OWNERS_FIELD_WIDTH, grp->gr_name);
+    } else {
+        printf("%*d ", OWNERS_FIELD_WIDTH, gid);
+    }
 }
 
 void printHardLinksNumber(struct stat* statbuf){
     nlink_t hLinksNumber = statbuf->st_nlink;
-    printf("%*lu", HLINK_FIELD_WIDTH, hLinksNumber);
+    printf("%*lu ", HLINK_FIELD_WIDTH, hLinksNumber);
 }
 
 void printFilePermissions(struct stat* statbuf){
@@ -62,10 +100,15 @@ void printFileType(struct stat* statbuf){
     }
 }
 
-void printFileInformation(struct stat* statbuf){
+void printFileInformation(struct stat* statbuf, char * pathFile){
     printFileType(statbuf);
     printFilePermissions(statbuf);
     printHardLinksNumber(statbuf);
+    printOwners(statbuf);
+    printRegularFileSize(statbuf);
+    printLastTimeFileModified(statbuf);
+    printFilename(pathFile);
+    printf("\n");
 }
 
 int main(int argc, char **argv){
@@ -81,12 +124,14 @@ int main(int argc, char **argv){
 
     for (int i = 1; i < argc; ++i) {
         pathFile = argv[i];
+
         statStatus = stat(pathFile, &statbuf);
         if(statStatus == STAT_ERROR){
             perror("There are problems with stat.");
             continue;
         }
-        printFileInformation(&statbuf);
+
+        printFileInformation(&statbuf, pathFile);
     }
 
     return EXIT_SUCCESS;
