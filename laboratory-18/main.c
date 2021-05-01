@@ -9,6 +9,30 @@
 #define STAT_ERROR 1
 #define NOT_INCLUDED 0
 
+#define HLINK_FIELD_WIDTH 4
+#define OWNERS_FIELD_WIDTH 10
+
+void printFilename(struct stat* statbuf){
+
+}
+
+void printLastTimeFileModified(struct stat* statbuf){
+
+}
+
+void printRegularFileSize(struct stat* statbuf){
+
+}
+
+void printOwners(struct stat* statbuf){
+
+}
+
+void printHardLinksNumber(struct stat* statbuf){
+    nlink_t hLinksNumber = statbuf->st_nlink;
+    printf("%*lu", HLINK_FIELD_WIDTH, hLinksNumber);
+}
+
 void printFilePermissions(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
 
@@ -41,6 +65,7 @@ void printFileType(struct stat* statbuf){
 void printFileInformation(struct stat* statbuf){
     printFileType(statbuf);
     printFilePermissions(statbuf);
+    printHardLinksNumber(statbuf);
 }
 
 int main(int argc, char **argv){
