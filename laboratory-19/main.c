@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glob.h>
 
 #define STATUS_SUCCESS 0
 #define STATUS_FAILURE -1
@@ -14,9 +15,38 @@
 #define INPUT_HOLDER_INIT_SIZE 64
 #define EXPAND_COEF 2
 
-/*int findSuitableStrings(){
+void correctCompletion(char * pattern){
+    free(pattern);
+}
 
-}*/
+int globErrfunc(const char *epath, int eerrno){
+    fprintf(stderr,"There are problems with %s, certanly: %s", epath, strerror(eerrno));
+    return STATUS_SUCCESS;
+}
+
+int printSuitableStrings(char * pattern){
+    glob_t suitableStrings;
+
+    // GLOB_NOCHECK
+    // If pattern does not match any path name, then glob() returns a list consisting of only pattern, and the number of matched path names is 1.
+    int globStatus = glob(pattern, GLOB_NOCHECK, globErrfunc, &suitableStrings);
+
+    if(globStatus != STATUS_SUCCESS){
+        perror("printSuitableStrings. There are problems with glob");
+        return STATUS_FAILURE;
+    }
+
+    char **filenamesList = suitableStrings.gl_pathv;
+    int filenamesNumber = suitableStrings.gl_pathc;
+
+    for (int i = 0; i < filenamesNumber; ++i) {
+        printf("%s ", filenamesList[i]);
+    }
+
+    globfree(&suitableStrings);
+
+    return STATUS_SUCCESS;
+}
 
 int expandInputBuffer(char** inputHolder, size_t *bufferSize){
     char *newInputHolder = NULL;
@@ -99,12 +129,12 @@ int main(){
         return EXIT_FAILURE;
     }
 
-    printf("%s", pattern);
-
-/*    int findSuitableStringsStatus = findSuitableStrings();
-    if(findSuitableStringsStatus == STATUS_FAILURE){
+    int printSuitableStringsStatus = printSuitableStrings(pattern);
+    if(printSuitableStringsStatus == STATUS_FAILURE){
         return EXIT_FAILURE;
-    }*/
+    }
+
+    correctCompletion(pattern);
 
     return EXIT_SUCCESS;
 }
