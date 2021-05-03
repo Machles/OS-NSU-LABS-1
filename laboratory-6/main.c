@@ -25,6 +25,7 @@
 #define DECIMAL_SCALE_OF_NOTATION 10
 #define TABLE_SIZE 4096
 #define FD_NOT_INCLUDED 0
+#define NO_STRINGS 0
 
 // ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
 
@@ -108,7 +109,7 @@ long getStringNumber(int fileDescriptorIn){
     }
 
     if(selectStatus == STATUS_FAIL){
-        perror("There are problems with select function");
+        perror("getStringNumber. There are problems with select function");
         return STATUS_FAIL;
     }
 
@@ -164,7 +165,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
                 /// Если количество строк больше TABLE_SIZE, то программа завершается с указанием на то, что максиммальный размер таблицы превышен.
                 if(indexInTable >= TABLE_SIZE){
                     /// Исправление по комментарию с семинара. (#)
-                    fprintf(stderr, "Strings count is bigger than max table size %d", TABLE_SIZE); /// Исправил, теперь при выводе указывается текущий размер таблицы, объявленный в define
+                    fprintf(stderr, "fillTable. Strings count is bigger than max table size %d", TABLE_SIZE); /// Исправил, теперь при выводе указывается текущий размер таблицы, объявленный в define
                     return STATUS_FAIL;
                 }
 
@@ -276,7 +277,14 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
+
+    if(stringsCount == NO_STRINGS){
+        printf("There is no strings in the file.");
+        return EXIT_SUCCESS;
+    }
+
     printf("Available range: [1, %d]\n", stringsCount);
+
     status = printStringByNumber(fileDescriptorIn, offsetsFileTable, stringsLengthsFileTable, stringsCount);
     if(status == STATUS_FAIL) {
         lastWorkWithData(fileDescriptorIn);
