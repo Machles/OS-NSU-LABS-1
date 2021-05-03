@@ -88,7 +88,7 @@ long getStringNumber(int fileDescriptorIn){
 
     char *endptr = NULL;
 
-    /// Исправление по комментарию с семинара.
+    /// Исправление по комментарию с семинара. (#)
     printf("Enter number of line, which you want to see (You have 5 seconds): "); // Иправил, сейчас выводится 1 строка, без отладочной информации
 
     int fflushStatus = fflush(stdout);
@@ -163,7 +163,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
                 /// Увеличил размеры таблицы теперь TABLE_SIZE не 256, а 4096. (!)
                 /// Если количество строк больше TABLE_SIZE, то программа завершается с указанием на то, что максиммальный размер таблицы превышен.
                 if(indexInTable >= TABLE_SIZE){
-                    /// Исправление по комментарию с семинара.
+                    /// Исправление по комментарию с семинара. (#)
                     fprintf(stderr, "Strings count is bigger than max table size %d", TABLE_SIZE); /// Исправил, теперь при выводе указывается текущий размер таблицы, объявленный в define
                     return STATUS_FAIL;
                 }
@@ -210,7 +210,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
                 return STATUS_SUCCESS;
             }
 
-            /// Исправление по комментарию с семинара.
+            /// Исправление по комментарию с семинара. (#)
             fprintf(stderr, "printStringByNumber. Invalid string number! Available range: [1, %d]. Try again.\n", stringsCount); /// Добавил вывод допустимого интервала, чтобы пользователь понимал, какой интервал строк ему доступен.
 
             continue;
