@@ -205,7 +205,9 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
         if (stringNumber < 0 || stringNumber > stringsCount) {
             if (stringNumber == STATUS_FAIL) {
                 return STATUS_FAIL;
-            } else if (stringNumber == STATUS_TIMEOUT) {
+            }
+
+            if (stringNumber == STATUS_TIMEOUT) {
                 // Если время вышло, то завершаем печать строк по их номеру
                 return STATUS_SUCCESS;
             }
