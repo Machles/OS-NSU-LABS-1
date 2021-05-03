@@ -13,6 +13,7 @@ int execvpe(const char* filename, char *argv[], char *envp[]){
     char **prevEnviron = environ;
     environ = envp;
     execvp(filename, argv);
+
     perror("There are problems with execvp");
     environ = prevEnviron;
 
@@ -20,12 +21,13 @@ int execvpe(const char* filename, char *argv[], char *envp[]){
 }
 
 int main(int argc, char **argv){
+
     if(argc < MIN_REQUIRED_ARGS_NUM){
         fprintf(stderr, "Not enough arguments entered.\nusage: progname commandName <arg1> <arg2> ... <argN>\n");
         exit(EXIT_FAILURE);
     }
 
-    char *envpMod[2] = {"", NULL};
+    char *envpMod[2] = {"PATH=/home/students/19200/r.yatmanov/labs/laboratory-11/papka", NULL};
     char* fileName = argv[PROG_NAME_IDX];
     char** commandArguments = &argv[PROG_ARGS_START_IDX];
 

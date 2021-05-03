@@ -10,7 +10,7 @@
 #define WAIT_ERROR -1
 #define REQUIRED_ARGS_NUM 2
 #define CHILD_RETURN_CODE 0
-#define PROG_NAME_IDX 1
+#define FILENAME_IDX 1
 #define SLEEP_TIME 1
 
 int executeCommand(char* argv[], char* commandName){
@@ -44,6 +44,9 @@ int waitForChildProcess(){
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
         printf("Child process terminated with a signal: %d\n", signalInfo);
+        if(WCOREDUMP(currentStatus)){
+            printf("Also core file has been produced.");
+        }
     } else if(WIFEXITED(currentStatus)){
         int exitStatus = WEXITSTATUS(currentStatus);
         printf("Child process exited with status: %d\n", exitStatus);
@@ -61,7 +64,7 @@ int main(int argc, char **argv){
 
     // Здесь я явно задаю название команды, которую хочу запустить
     char commandName[] = "cat";
-    char* fileName = argv[PROG_NAME_IDX];
+    char* fileName = argv[FILENAME_IDX];
 
     // Создаю на основе предудущих данных новый массив аргументов
     char* commandArgv[] = {commandName, fileName, NULL};
@@ -73,14 +76,14 @@ int main(int argc, char **argv){
     }
 
     // Первый вариант программы - "Родитель должен вызвать printf(3) и распечатать какой-либо текст."
-    printf("Check text\n");
+//    printf("Check text\n");
 
     // Второй вариант программы - модифицированный - "Последняя строка, распечатанная родителем, выводилась после завершения порожденного процесса."
-//    returnStatus = waitForChildProcess();
-//    if(returnStatus == STATUS_FAIL){
-//        fprintf(stderr,"There problems with waiting child process");
-//        exit(EXIT_FAILURE);
-//    }
+    returnStatus = waitForChildProcess();
+    if(returnStatus == STATUS_FAIL){
+        fprintf(stderr,"There problems with waiting child process");
+        exit(EXIT_FAILURE);
+    }
 
     return EXIT_SUCCESS;
 }

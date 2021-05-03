@@ -46,13 +46,13 @@ int waitForChildProcess(){
     // "... и распечатать его код завершения."
     if(WIFSIGNALED(currentStatus)){
         int signalInfo = WTERMSIG(currentStatus);
-        printf("\nChild process terminated with a signal: %d\n", signalInfo);
+        printf("Child process terminated with a signal: %d\n", signalInfo);
         if(WCOREDUMP(currentStatus)){
             printf("Also core file has been produced.");
         }
     } else if(WIFEXITED(currentStatus)){
         int exitStatus = WEXITSTATUS(currentStatus);
-        printf("\nChild process exited with status: %d\n", exitStatus);
+        printf("Child process exited with status: %d\n", exitStatus);
     }
 
     return STATUS_SUCCESS;

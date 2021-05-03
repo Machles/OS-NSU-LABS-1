@@ -279,7 +279,7 @@ int main(int argc, char* argv[]){
 
 
     if(stringsCount == NO_STRINGS){
-        printf("There is no strings in the file.");
+        printf("There is no strings in the file.\n");
         lastWorkWithData(fileDescriptorIn);
         return EXIT_SUCCESS;
     }
