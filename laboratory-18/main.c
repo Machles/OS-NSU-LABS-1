@@ -18,6 +18,7 @@
 #define OWNERS_FIELD_WIDTH 10
 #define FILESIZE_FIELD_WIDTH 10
 #define FILENAME_FIELD_WIDTH 10
+#define LASTMOD_FIELD_WIDTH 8
 
 #define LAST_STRING_CHARACTER '\0'
 
@@ -33,7 +34,7 @@ void printLastTimeFileModified(struct stat* statbuf){
     unsigned long timeLength = strlen(lastTimeFileModified);
     lastTimeFileModified[timeLength-1] = LAST_STRING_CHARACTER;
 
-    printf("%s ", lastTimeFileModified);
+    printf("%*s ", LASTMOD_FIELD_WIDTH, lastTimeFileModified);
 }
 
 void printRegularFileSize(struct stat* statbuf){
@@ -75,7 +76,7 @@ void printFilePermissions(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
 
     const char flags[FLAGS_COUNT] = {'r', 'w', 'x'};
-    char permissions[PERMISSION_BITS_COUNT] = "---------";
+    char permissions[] = "---------\0";
     const mode_t permissionBits[PERMISSION_BITS_COUNT] = { S_IRUSR, S_IWUSR, S_IXUSR,
                                                            S_IRGRP, S_IWGRP, S_IXGRP,
                                                            S_IROTH, S_IWOTH, S_IXOTH };
@@ -83,17 +84,19 @@ void printFilePermissions(struct stat* statbuf){
     for (int i = 0; i < PERMISSION_BITS_COUNT; ++i) {
         if( (mode & permissionBits[i]) != NOT_INCLUDED){
             permissions[i] = flags[i % FLAGS_COUNT];
+        } else {
+            permissions[i] = '-';
         }
     }
 
-    printf("%s ", permissions);
+    printf("%*s ", PERMISSION_BITS_COUNT, permissions);
 }
 
 void printFileType(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
     if(S_ISDIR(mode)){
         printf("%c", 'd');
-    } if(S_ISREG(mode)){
+    } else if(S_ISREG(mode)){
         printf("%c", '-');
     } else {
         printf("%c", '?');
