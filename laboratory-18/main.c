@@ -120,9 +120,10 @@ int main(int argc, char **argv){
     char * pathFile;
     int statStatus;
 
+    char * argvDef[] = {".", NULL};
+
     if(argc < MIN_REQUIRED_ARGS_NUM){
-        fprintf(stderr, "Not enough arguments entered.\nusage: progname <file1> <file2> ... <fileN>\n");
-        exit(EXIT_FAILURE);
+        argv = argvDef;
     }
 
     for (int i = 1; i < argc; ++i) {
