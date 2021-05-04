@@ -27,6 +27,7 @@
 #define TABLE_SIZE 4096
 #define FD_NOT_INCLUDED 0
 #define NO_STRINGS 0
+#define TRUE 1
 
 // ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
 
@@ -147,7 +148,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int currentPosition = 0;
     int readSymbols;
 
-    int terminalNullNumbers = 0;
+    char isItLineEnd = 0;
 
     /// Для каких целей у вас дублируется код с read? Переработать код так, чтобы вам не приходилось дублировать код.
     /// Исправил (!)
@@ -185,19 +186,22 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
                 currentStringLength = 0;
 
                 if( inputHolder[indexInInputHolder] == '\0' ){
-                    break;
+                    return indexInTable;
                 }
+
             }
+
+            inputHolder[indexInInputHolder] = '\0';
+
             indexInInputHolder++;
             currentPosition++;
         }
 
-        indexInInputHolder = 0;
+        indexInInputHolder = '\0';
 
-        memset(inputHolder, 0, INPUT_HOLDER_SIZE);
+        //memset(inputHolder, 0, INPUT_HOLDER_SIZE);
     } while (readSymbols > 0);
 
-    return indexInTable;
 }
 
 int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long* stringsLengthsFileTable, int stringsCount) {
