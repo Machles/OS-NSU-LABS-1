@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include <string.h>
 
 #define INPUT_HOLDER_SIZE 512
 
@@ -146,6 +147,8 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int currentPosition = 0;
     int readSymbols;
 
+    int terminalNullNumbers = 0;
+
     /// Для каких целей у вас дублируется код с read? Переработать код так, чтобы вам не приходилось дублировать код.
     /// Исправил (!)
 
@@ -157,9 +160,9 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             return STATUS_FAIL;
         }
 
-        while(indexInInputHolder < readSymbols){
+        while(indexInInputHolder < readSymbols || ( readSymbols < INPUT_HOLDER_SIZE && inputHolder[readSymbols] == '\0' ) ){
             currentStringLength++;
-            if(inputHolder[indexInInputHolder] == '\n'){
+            if(inputHolder[indexInInputHolder] == '\n' || inputHolder[indexInInputHolder] == '\0'){
 
                 /// Увеличил размеры таблицы теперь TABLE_SIZE не 256, а 4096. (!)
                 /// Если количество строк больше TABLE_SIZE, то программа завершается с указанием на то, что максиммальный размер таблицы превышен.
@@ -180,6 +183,10 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
                 indexInTable += 1;
 
                 currentStringLength = 0;
+
+                if( inputHolder[indexInInputHolder] == '\0' ){
+                    break;
+                }
             }
             indexInInputHolder++;
             currentPosition++;
@@ -187,6 +194,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
 
         indexInInputHolder = 0;
 
+        memset(inputHolder, 0, INPUT_HOLDER_SIZE);
     } while (readSymbols > 0);
 
     return indexInTable;
