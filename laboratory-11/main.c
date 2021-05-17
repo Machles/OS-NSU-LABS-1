@@ -27,11 +27,12 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-    char *envpMod[2] = {"PATH=/home/students/19200/r.yatmanov/labs/laboratory-11/papka", NULL};
+    char* envpMod[2] = {"PATH=/home/students/19200/r.yatmanov/labs/laboratory-11/papka", NULL};
     char* fileName = argv[PROG_NAME_IDX];
     char** commandArguments = &argv[PROG_ARGS_START_IDX];
 
     execvpe(fileName, commandArguments, envpMod);
+    fprintf(stderr, "There are problems with execvpe");
 
     return EXIT_FAILURE;
 }

@@ -23,10 +23,8 @@ int executeCommand(char* argv[], char* commandName){
 
     if(statusFork == CHILD_RETURN_CODE){
         execvp(commandName, argv);
-        perror("executeCommand. There are problems with execpv");
+        perror("executeCommand. There are problems with execvp");
         return STATUS_FAIL;
-    } else {
-        sleep(1);
     }
 
     return STATUS_SUCCESS;
@@ -72,13 +70,14 @@ int main(int argc, char **argv){
     char* commandArgv[] = {commandName, fileName, NULL};
 
     int returnStatus = executeCommand(commandArgv, commandName);
+
     if(returnStatus == STATUS_FAIL){
         fprintf(stderr,"There problems with executing command 'commandName'");
         exit(EXIT_FAILURE);
     }
 
     // Первый вариант программы - "Родитель должен вызвать printf(3) и распечатать какой-либо текст."
-    printf("Check text\n");
+//    printf("Check text\n");
 
     // Второй вариант программы - модифицированный - "Последняя строка, распечатанная родителем, выводилась после завершения порожденного процесса."
 //    returnStatus = waitForChildProcess();

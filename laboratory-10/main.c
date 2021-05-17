@@ -12,7 +12,6 @@
 #define CHILD_RETURN_CODE 0
 #define PROG_NAME_IDX 1
 #define PROG_ARGS_START_IDX 1
-#define SLEEP_TIME 1
 
 // В комменатриях я процитировал требования из задания
 
@@ -26,7 +25,7 @@ int executeCommand(char* argv[], char* commandName){
 
     if(statusFork == CHILD_RETURN_CODE){
         execvp(commandName, argv);
-        perror("executeCommand. There are problems with execpv");
+        perror("executeCommand. There are problems with execvp");
         return STATUS_FAIL;
     }
 

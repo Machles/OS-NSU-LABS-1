@@ -25,9 +25,9 @@
 #define NOTSTOPNUMBER 1
 #define DECIMAL_SCALE_OF_NOTATION 10
 #define TABLE_SIZE 4096
-#define FD_NOT_INCLUDED 0
 #define NO_STRINGS 0
 #define TRUE 1
+#define MIN_REQUIRED_ARGS_NUMBER 2
 
 // ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
 
@@ -39,6 +39,7 @@ int lastWorkWithData(int fileDescriptorIn){
         perror("There are also problems with closing file");
         return STATUS_FAIL;
     }
+
     return STATUS_SUCCESS;
 }
 
@@ -92,7 +93,7 @@ long getStringNumber(int fileDescriptorIn){
     char *endptr = NULL;
 
     /// Исправление по комментарию с семинара. (#)
-    printf("Enter number of line, which you want to see (You have 5 seconds): "); // Иправил, сейчас выводится 1 строка, без отладочной информации
+    printf("Enter number of line, which you want to see (You have 5 seconds): "); // Иcправил, сейчас выводится 1 строка, без отладочной информации
 
     int fflushStatus = fflush(stdout);
     if(fflushStatus != STATUS_SUCCESS){
@@ -148,8 +149,6 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
     int currentPosition = 0;
     int readSymbols;
 
-    char isItLineEnd = 0;
-
     /// Для каких целей у вас дублируется код с read? Переработать код так, чтобы вам не приходилось дублировать код.
     /// Исправил (!)
 
@@ -197,7 +196,7 @@ int fillTable(long* offsetsFileTable, long* stringsLengthsFileTable, int fileDes
             currentPosition++;
         }
 
-        indexInInputHolder = '\0';
+        indexInInputHolder = 0;
 
         //memset(inputHolder, 0, INPUT_HOLDER_SIZE);
     } while (readSymbols > 0);
@@ -272,7 +271,7 @@ int main(int argc, char* argv[]){
     long stringsLengthsFileTable[TABLE_SIZE];
     int status;
 
-    if(argc < 2){
+    if(argc < MIN_REQUIRED_ARGS_NUMBER){
         fprintf(stderr, "Not enough arguments entered.\nusage: progname input_file\n");
         exit(EXIT_FAILURE);
     }
