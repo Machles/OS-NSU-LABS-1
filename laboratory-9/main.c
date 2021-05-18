@@ -25,7 +25,9 @@ int executeCommand(char* argv[], char* commandName){
         execvp(commandName, argv);
         perror("executeCommand. There are problems with execvp");
         return STATUS_FAIL;
-    }
+    } /*else {
+        sleep(SLEEP_TIME);
+    }*/
 
     return STATUS_SUCCESS;
 }
@@ -77,7 +79,7 @@ int main(int argc, char **argv){
     }
 
     // Первый вариант программы - "Родитель должен вызвать printf(3) и распечатать какой-либо текст."
-//    printf("Check text\n");
+    printf("Check text\n");
 
     // Второй вариант программы - модифицированный - "Последняя строка, распечатанная родителем, выводилась после завершения порожденного процесса."
 //    returnStatus = waitForChildProcess();

@@ -104,6 +104,10 @@ long getStringNumber(int fileDescriptorIn){
     // Используем функцию select, для того, чтобы отслеживать статус указанных дескрипторов для чтения
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
 
+    while(FD_ISSET(STDIN, &rfds) != 1){
+        selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
+    }
+
     /// Какова семантика нуля? Дайте название ему. /// Исправил. (!)
     if(selectStatus == FDS_NOT_READY){
         fprintf(stderr, "getStringNumber. Time is over!\n");
