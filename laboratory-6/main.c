@@ -14,6 +14,7 @@
 #define STATUS_TIMEOUT -2
 #define FDS_NOT_READY 0
 #define STATUS_NO_NUMCONV -3
+#define FD_NOT_READY -4
 #define MAX_STRING_LENGTH 1000
 #define OWNER_READ_WRITE 0600
 #define TIMEOUT_SEC 5
@@ -27,6 +28,7 @@
 #define TABLE_SIZE 4096
 #define NO_STRINGS 0
 #define TRUE 1
+#define FALSE 0
 #define MIN_REQUIRED_ARGS_NUMBER 2
 
 // ! На семинаре я продемонстрировал, что программа работает на Solaris ! ///
@@ -104,10 +106,6 @@ long getStringNumber(int fileDescriptorIn){
     // Используем функцию select, для того, чтобы отслеживать статус указанных дескрипторов для чтения
     selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
 
-    while(FD_ISSET(STDIN, &rfds) != 1){
-        selectStatus = select(MAX_FILEDESC_NUMBER, &rfds, NULL, NULL, &tv);
-    }
-
     /// Какова семантика нуля? Дайте название ему. /// Исправил. (!)
     if(selectStatus == FDS_NOT_READY){
         fprintf(stderr, "getStringNumber. Time is over!\n");
@@ -118,6 +116,10 @@ long getStringNumber(int fileDescriptorIn){
     if(selectStatus == STATUS_FAIL){
         perror("getStringNumber. There are problems with select function");
         return STATUS_FAIL;
+    }
+
+    if(FD_ISSET(STDIN, &rfds) == FALSE){
+        return FD_NOT_READY;
     }
 
     char numberHolder[INPUT_HOLDER_SIZE];
@@ -223,7 +225,7 @@ int printStringByNumber(int fileDescriptorIn, long* offsetFileTable, const long*
                 return STATUS_FAIL;
             }
 
-            if (stringNumber == STATUS_TIMEOUT) {
+            if (stringNumber == STATUS_TIMEOUT || stringNumber == FD_NOT_READY) {
                 // Если время вышло, то завершаем печать строк по их номеру
                 return STATUS_SUCCESS;
             }
