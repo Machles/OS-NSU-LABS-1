@@ -14,36 +14,30 @@
 #define STAT_ERROR 1
 #define NOT_INCLUDED 0
 
-#define HLINK_FIELD_WIDTH 4
-#define OWNERS_FIELD_WIDTH 10
-#define FILESIZE_FIELD_WIDTH 10
-#define FILENAME_FIELD_WIDTH 10
-#define LASTMOD_FIELD_WIDTH 8
-
 #define LAST_STRING_CHARACTER '\0'
 
 void printFilename(char* pathFile){
     char * fileName = basename(pathFile);
-    printf("%*s", FILENAME_FIELD_WIDTH, fileName);
+    printf("%s\t", fileName);
 }
 
 void printLastTimeFileModified(struct stat* statbuf){
     time_t time = statbuf->st_mtim.tv_sec;
-    char *lastTimeFileModified = ctime(&time);
+    char * lastTimeFileModified = ctime(&time);
 
     unsigned long timeLength = strlen(lastTimeFileModified);
     lastTimeFileModified[timeLength-1] = LAST_STRING_CHARACTER;
 
-    printf("%*s ", LASTMOD_FIELD_WIDTH, lastTimeFileModified);
+    printf("%s\t", lastTimeFileModified);
 }
 
 void printRegularFileSize(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
     if(S_ISREG(mode)){
         off_t fileSize = statbuf->st_size;
-        printf("%*ld ", FILESIZE_FIELD_WIDTH, fileSize);
+        printf("%ld\t", fileSize);
     } else {
-        printf("%*s ", FILESIZE_FIELD_WIDTH, " ");
+        printf("\t");
     }
 }
 
@@ -55,28 +49,28 @@ void printOwners(struct stat* statbuf){
     struct group * grp = getgrgid(gid);
 
     if(pw != NULL){
-        printf("%*s ", OWNERS_FIELD_WIDTH, pw->pw_name);
+        printf("%s\t", pw->pw_name);
     } else {
-        printf("%*d ", OWNERS_FIELD_WIDTH, uid);
+        printf("%d\t", uid);
     }
 
     if(grp != NULL){
-        printf("%*s ", OWNERS_FIELD_WIDTH, grp->gr_name);
+        printf("%s\t ", grp->gr_name);
     } else {
-        printf("%*d ", OWNERS_FIELD_WIDTH, gid);
+        printf("%d\t ", gid);
     }
 }
 
 void printHardLinksNumber(struct stat* statbuf){
     nlink_t hLinksNumber = statbuf->st_nlink;
-    printf("%*lu ", HLINK_FIELD_WIDTH, hLinksNumber);
+    printf("%lu\t ", hLinksNumber);
 }
 
 void printFilePermissions(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
 
     const char flags[FLAGS_COUNT] = {'r', 'w', 'x'};
-    char permissions[] = "---------\0";
+    char permissions[] = "----------";
     const mode_t permissionBits[PERMISSION_BITS_COUNT] = { S_IRUSR, S_IWUSR, S_IXUSR,
                                                            S_IRGRP, S_IWGRP, S_IXGRP,
                                                            S_IROTH, S_IWOTH, S_IXOTH };
@@ -84,12 +78,12 @@ void printFilePermissions(struct stat* statbuf){
     for (int i = 0; i < PERMISSION_BITS_COUNT; ++i) {
         if( (mode & permissionBits[i]) != NOT_INCLUDED){
             permissions[i] = flags[i % FLAGS_COUNT];
-        } else {
-            permissions[i] = '-';
         }
     }
 
-    printf("%*s ", PERMISSION_BITS_COUNT, permissions);
+    permissions[PERMISSION_BITS_COUNT] = LAST_STRING_CHARACTER;
+
+    printf("%s\t", permissions);
 }
 
 void printFileType(struct stat* statbuf){
@@ -120,18 +114,20 @@ int main(int argc, char **argv){
     char * pathFile;
     int statStatus;
 
-    char * argvDef[] = {".", NULL};
+    char * argvDef[] = {argv[0] ,".", NULL};
+    int argcDef = 2;
 
     if(argc < MIN_REQUIRED_ARGS_NUM){
         argv = argvDef;
+        argc = argcDef;
     }
 
     for (int i = 1; i < argc; ++i) {
         pathFile = argv[i];
-
         statStatus = stat(pathFile, &statbuf);
+
         if(statStatus == STAT_ERROR){
-            perror("There are problems with stat.");
+            perror("There are problems with stat");
             continue;
         }
 
