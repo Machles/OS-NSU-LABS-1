@@ -132,7 +132,7 @@ int main(int argc, char **argv){
 
     for (int i = 1; i < argc; ++i) {
         pathFile = argv[i];
-        statStatus = stat(pathFile, &statbuf);
+        statStatus = lstat(pathFile, &statbuf);
 
         if(statStatus == STAT_ERROR){
             perror("There are problems with stat");
