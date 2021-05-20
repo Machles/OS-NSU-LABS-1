@@ -14,6 +14,14 @@
 #define STAT_ERROR 1
 #define NOT_INCLUDED 0
 
+#define READ_PERMISSION 'r'
+#define WRITE_PERMISSION 'w'
+#define EXECUTE_PERMISSION 'x'
+
+#define FILE_DIR 'd'
+#define FILE_REG '-'
+#define FILE_OTHER '?'
+
 #define LAST_STRING_CHARACTER '\0'
 
 void printFilename(char* pathFile){
@@ -69,7 +77,7 @@ void printHardLinksNumber(struct stat* statbuf){
 void printFilePermissions(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
 
-    const char flags[FLAGS_COUNT] = {'r', 'w', 'x'};
+    const char flags[FLAGS_COUNT] = {READ_PERMISSION, WRITE_PERMISSION, EXECUTE_PERMISSION};
     char permissions[] = "----------";
     const mode_t permissionBits[PERMISSION_BITS_COUNT] = { S_IRUSR, S_IWUSR, S_IXUSR,
                                                            S_IRGRP, S_IWGRP, S_IXGRP,
@@ -89,11 +97,11 @@ void printFilePermissions(struct stat* statbuf){
 void printFileType(struct stat* statbuf){
     mode_t mode = statbuf->st_mode;
     if(S_ISDIR(mode)){
-        printf("%c", 'd');
+        printf("%c", FILE_DIR);
     } else if(S_ISREG(mode)){
-        printf("%c", '-');
+        printf("%c", FILE_REG);
     } else {
-        printf("%c", '?');
+        printf("%c", FILE_OTHER);
     }
 }
 
