@@ -4,7 +4,7 @@
 #include <glob.h>
 
 #define STATUS_SUCCESS 0
-#define STATUS_FAILURE -1
+#define STATUS_FAILURE (-1)
 
 #define REALLOC_ERROR NULL
 #define FGETS_ERROR NULL
@@ -15,6 +15,9 @@
 #define INPUT_HOLDER_INIT_SIZE 64
 #define EXPAND_COEF 2
 
+#define TRUE 1
+#define FALSE 0
+
 void correctCompletion(char * pattern){
     free(pattern);
 }
@@ -24,8 +27,25 @@ int globErrfunc(const char *epath, int eerrno){
     return STATUS_SUCCESS;
 }
 
+int checkSlashInPattern(const char * pattern){
+    unsigned long patternSize = strlen(pattern);
+
+    for (int i = 0; i < patternSize; ++i) {
+        if(pattern[i] == '/'){
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 int printSuitableStrings(char * pattern){
     glob_t suitableStrings;
+
+    if(checkSlashInPattern(pattern) == TRUE){
+        fprintf(stderr, "printSuitableStrings. Incorrect pattern. '/' symbol is prohibited!\n");
+        return STATUS_FAILURE;
+    }
 
     // GLOB_NOCHECK
     // If pattern does not match any path name, then glob() returns a list consisting of only pattern, and the number of matched path names is 1.
@@ -55,10 +75,11 @@ int expandInputBuffer(char** inputHolder, size_t *bufferSize){
     if(*bufferSize == 0){
         newInputHolderSize = INPUT_HOLDER_INIT_SIZE;
     } else {
-        newInputHolderSize *= EXPAND_COEF;
+        newInputHolderSize = *bufferSize * EXPAND_COEF;
     }
 
     newInputHolder = realloc(*inputHolder, newInputHolderSize);
+
     if(newInputHolder == REALLOC_ERROR){
         perror("expandInputBuffer. There are problems with realloc");
         return STATUS_FAILURE;
@@ -73,6 +94,7 @@ int expandInputBuffer(char** inputHolder, size_t *bufferSize){
 int readLine(char **line, size_t * currentLineLength){
     char * inputHolder = NULL;
     char * fgetsStatus = NULL;
+
     size_t bufferSize = 0;
     size_t currentBufferPos = 0;
 
@@ -108,12 +130,15 @@ void truncateNewLineCharacter(char *line, size_t * lineLength){
 int readPattern(char ** pattern){
     char *tempLine = NULL;
     size_t currentLineLength = 0;
+
+    printf("Enter your pattern: ");
     int readLineStatus = readLine(&tempLine, &currentLineLength);
 
     if(readLineStatus == STATUS_FAILURE){
         fprintf(stderr, "readPattern. There are problems with reading line\n");
         return STATUS_FAILURE;
     }
+
     truncateNewLineCharacter(tempLine, &currentLineLength);
     *pattern = tempLine;
 
