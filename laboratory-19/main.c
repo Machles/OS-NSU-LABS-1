@@ -14,6 +14,7 @@
 
 #define INPUT_HOLDER_INIT_SIZE 64
 #define EXPAND_COEF 2
+#define STRING_NOT_FOUND NULL
 
 #define TRUE 1
 #define FALSE 0
@@ -28,14 +29,11 @@ int globErrfunc(const char *epath, int eerrno){
 }
 
 int checkSlashInPattern(const char * pattern){
-    unsigned long patternSize = strlen(pattern);
+    char* slashSybol = "/";
 
-    for (int i = 0; i < patternSize; ++i) {
-        if(pattern[i] == '/'){
-            return TRUE;
-        }
+    if(strstr(pattern, slashSybol) != STRING_NOT_FOUND){
+        return TRUE;
     }
-
     return FALSE;
 }
 
@@ -59,8 +57,9 @@ int printSuitableStrings(char * pattern){
     char **filenamesList = suitableStrings.gl_pathv;
     int filenamesNumber = suitableStrings.gl_pathc;
 
+    printf("Work's results:\n");
     for (int i = 0; i < filenamesNumber; ++i) {
-        printf("%s ", filenamesList[i]);
+        printf("%s\n", filenamesList[i]);
     }
 
     globfree(&suitableStrings);
